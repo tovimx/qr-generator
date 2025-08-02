@@ -41,10 +41,12 @@ test.describe('QR Code Functionality', () => {
     
     // For now, we'll test that the redirect endpoint exists
     // You would replace 'TEST123' with an actual test short code
-    const response = await page.request.get('/api/qr/TEST123');
+    const response = await page.request.get('/api/qr/TEST123', {
+      maxRedirects: 0 // Don't follow redirects to check the actual status
+    });
     
-    // The endpoint should exist (even if it returns 404 for non-existent codes)
-    expect([200, 302, 404]).toContain(response.status());
+    // The endpoint should return 307 (redirect) or 404 for non-existent codes
+    expect([307, 404]).toContain(response.status());
   });
 
   test('should handle invalid QR short codes gracefully', async ({ page }) => {
@@ -89,20 +91,21 @@ test.describe('API Endpoints', () => {
     // Test that your API endpoints are accessible
     const response = await page.request.get('/api/qr-codes');
     
-    // Should return a response (might be 401 if auth required)
-    expect([200, 401, 403]).toContain(response.status());
+    // Should return 405 since this endpoint only accepts POST
+    expect(response.status()).toBe(405);
   });
 
-  test('should handle CORS properly', async ({ page }) => {
-    // Test CORS headers if your API needs to be accessed from other domains
-    const response = await page.request.get('/api/qr-codes', {
-      headers: {
-        'Origin': 'https://example.com'
+  test('should require authentication for QR code creation', async ({ page }) => {
+    // Test that creating QR codes requires authentication
+    const response = await page.request.post('/api/qr-codes', {
+      data: {
+        userId: 'test-user-id'
       }
     });
     
-    // Check that CORS headers are present (if needed)
-    const corsHeader = response.headers()['access-control-allow-origin'];
-    console.log(`CORS header: ${corsHeader}`);
+    // Should return 401 unauthorized without authentication
+    expect(response.status()).toBe(401);
+    const data = await response.json();
+    expect(data.error).toBe('Unauthorized');
   });
 });
