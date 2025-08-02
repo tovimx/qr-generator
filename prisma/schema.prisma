@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  qrCode QRCode?
+  
+  @@map("users")
+}
+
+model QRCode {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  shortCode String   @unique
+  title     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links Link[]
+  scans Scan[]
+  
+  @@map("qr_codes")
+}
+
+model Link {
+  id        String   @id @default(uuid())
+  qrCodeId  String
+  title     String
+  url       String
+  position  Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  qrCode QRCode @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  
+  @@map("links")
+}
+
+model Scan {
+  id        String   @id @default(uuid())
+  qrCodeId  String
+  userAgent String?
+  ipHash    String?
+  referer   String?
+  createdAt DateTime @default(now())
+  
+  qrCode QRCode @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  
+  @@index([qrCodeId, createdAt])
+  @@map("scans")
+}
