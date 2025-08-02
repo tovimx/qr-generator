@@ -5,6 +5,7 @@ import QRCodeManager from '@/components/dashboard/QRCodeManager'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export default async function DashboardPage() {
   const supabase = await createClient()

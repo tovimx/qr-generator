@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/auth/supabase/client'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
