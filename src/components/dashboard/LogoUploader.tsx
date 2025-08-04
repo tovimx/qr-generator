@@ -5,7 +5,6 @@ import { getSafeLimits } from '@/lib/utils/qr-validation'
 
 interface LogoUploaderProps {
   qrCodeId: string
-  userId: string
   currentLogoUrl: string | null
   logoSize: number
   onLogoUpdate: (logoUrl: string | null, logoSize: number) => void
@@ -13,7 +12,6 @@ interface LogoUploaderProps {
 
 export default function LogoUploader({ 
   qrCodeId, 
-  userId, 
   currentLogoUrl, 
   logoSize: initialLogoSize,
   onLogoUpdate 
@@ -96,6 +94,7 @@ export default function LogoUploader({
       <div className="space-y-3">
         {currentLogoUrl ? (
           <div className="flex items-center space-x-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={currentLogoUrl} 
               alt="QR Logo" 

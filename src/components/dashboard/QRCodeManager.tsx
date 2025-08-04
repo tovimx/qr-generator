@@ -328,7 +328,6 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
               
               <LogoUploader
                 qrCodeId={qrCode.id}
-                userId={user.id}
                 currentLogoUrl={qrCode.logoUrl}
                 logoSize={qrCode.logoSize || 30}
                 onLogoUpdate={(url, size) => handleLogoUpdate(url, size)}
@@ -336,20 +335,17 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
               
               {qrCode.logoUrl && (
                 <LogoShapeControl
-                  qrCodeId={qrCode.id}
                   logoShape={qrCode.logoShape || 'square'}
                   onShapeUpdate={(shape) => handleLogoUpdate(qrCode.logoUrl, qrCode.logoSize || 30, shape)}
                 />
               )}
               
               <QRStyleControls
-                qrCodeId={qrCode.id}
                 cornerRadius={qrCode.cornerRadius || 0}
                 onStyleUpdate={(cornerRadius) => handleStyleUpdate(cornerRadius, undefined)}
               />
               
               <QRColorPicker
-                qrCodeId={qrCode.id}
                 fgColor={qrCode.fgColor || '#000000'}
                 onColorUpdate={(fgColor) => handleStyleUpdate(undefined, fgColor)}
               />
@@ -393,7 +389,7 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
                   This QR code redirects to a custom URL.
                 </p>
                 <p className="text-sm text-gray-400">
-                  Switch to "Link Page" mode to manage multiple links.
+                  Switch to &quot;Link Page&quot; mode to manage multiple links.
                 </p>
               </div>
             )}

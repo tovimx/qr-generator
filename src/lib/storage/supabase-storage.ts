@@ -4,7 +4,7 @@ const LOGO_BUCKET = 'qr-logos'
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']
 
-export async function uploadLogo(file: File, userId: string): Promise<string | null> {
+export async function uploadLogo(file: File): Promise<string | null> {
   // Validate file
   if (!ALLOWED_TYPES.includes(file.type)) {
     throw new Error('Invalid file type. Please upload PNG, JPG, or SVG.')
@@ -32,7 +32,7 @@ export async function uploadLogo(file: File, userId: string): Promise<string | n
   console.log('Uploading file:', { fileName, fileSize: file.size, fileType: file.type })
   
   // Upload to Supabase Storage
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from(LOGO_BUCKET)
     .upload(fileName, file, {
       cacheControl: '3600',

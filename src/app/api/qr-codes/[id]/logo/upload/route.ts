@@ -82,7 +82,7 @@ export async function POST(
     
     if (!serviceRoleKey) {
       // Fallback to regular client if no service key
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from(LOGO_BUCKET)
         .upload(fileName, fileContent, {
           contentType: file.type,
@@ -101,7 +101,7 @@ export async function POST(
       // Use service client to bypass RLS
       const serviceClient = createServiceClient(supabaseUrl!, serviceRoleKey)
       
-      const { data: uploadData, error: uploadError } = await serviceClient.storage
+      const { error: uploadError } = await serviceClient.storage
         .from(LOGO_BUCKET)
         .upload(fileName, fileContent, {
           contentType: file.type,

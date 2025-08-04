@@ -4,13 +4,11 @@ import { useState } from 'react'
 import { getSafeLimits } from '@/lib/utils/qr-validation'
 
 interface QRStyleControlsProps {
-  qrCodeId: string
   cornerRadius: number
   onStyleUpdate: (cornerRadius: number) => void
 }
 
 export default function QRStyleControls({ 
-  qrCodeId, 
   cornerRadius: initialRadius,
   onStyleUpdate 
 }: QRStyleControlsProps) {

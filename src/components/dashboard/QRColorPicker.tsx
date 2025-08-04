@@ -3,12 +3,11 @@
 import { useState } from 'react'
 
 interface QRColorPickerProps {
-  qrCodeId: string
   fgColor: string
   onColorUpdate: (fgColor: string) => Promise<void>
 }
 
-export default function QRColorPicker({ qrCodeId, fgColor, onColorUpdate }: QRColorPickerProps) {
+export default function QRColorPicker({ fgColor, onColorUpdate }: QRColorPickerProps) {
   const [color, setColor] = useState(fgColor)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
