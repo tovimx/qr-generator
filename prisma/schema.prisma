@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,25 +12,30 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  qrCode QRCode?
-  
+  qrCode    QRCode?
+
   @@map("users")
 }
 
 model QRCode {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  shortCode String   @unique
-  title     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  links Link[]
-  scans Scan[]
-  
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  shortCode    String   @unique
+  title        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  redirectType String   @default("links")
+  redirectUrl  String?
+  logoSize     Int      @default(30)
+  logoUrl      String?
+  logoShape    String   @default("square")
+  cornerRadius Int      @default(0)
+  fgColor      String   @default("#000000")
+  links        Link[]
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scans        Scan[]
+
   @@map("qr_codes")
 }
 
@@ -46,9 +48,8 @@ model Link {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  qrCode QRCode @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
-  
+  qrCode    QRCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+
   @@map("links")
 }
 
@@ -59,9 +60,8 @@ model Scan {
   ipHash    String?
   referer   String?
   createdAt DateTime @default(now())
-  
-  qrCode QRCode @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
-  
+  qrCode    QRCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+
   @@index([qrCodeId, createdAt])
   @@map("scans")
 }

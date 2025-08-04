@@ -1,5 +1,7 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { prisma } from '@/lib/db/prisma'
+import { headers } from 'next/headers'
+import crypto from 'crypto'
 
 interface PageProps {
   params: Promise<{
@@ -25,6 +27,27 @@ export default async function LinkPage({ params }: PageProps) {
 
   if (!qrCode) {
     notFound()
+  }
+
+  // Track the scan
+  const headersList = await headers()
+  const userAgent = headersList.get('user-agent') || undefined
+  const ipHeader = headersList.get('x-forwarded-for') || headersList.get('x-real-ip')
+  const ipHash = ipHeader ? crypto.createHash('sha256').update(ipHeader).digest('hex') : undefined
+  const referer = headersList.get('referer') || undefined
+
+  await prisma.scan.create({
+    data: {
+      qrCodeId: qrCode.id,
+      userAgent,
+      ipHash,
+      referer
+    }
+  }).catch(console.error) // Don't block the redirect if tracking fails
+
+  // Handle redirect based on type
+  if (qrCode.redirectType === 'url' && qrCode.redirectUrl) {
+    redirect(qrCode.redirectUrl)
   }
 
   return (
