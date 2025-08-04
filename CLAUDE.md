@@ -584,3 +584,11 @@ When implementing this project:
 8. Implement tests for critical paths
 9. Optimize for Core Web Vitals
 10. Document any deviations from the plan
+
+## Git Commit Rules
+
+IMPORTANT: NEVER include the following in git commits:
+- "🤖 Generated with Claude Code"
+- "Co-Authored-By: Claude <noreply@anthropic.com>"
+- Any mention of Claude or AI assistance
+- Keep commits clean and professional
