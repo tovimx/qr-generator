@@ -3,13 +3,11 @@
 import { useState } from 'react'
 
 interface LogoShapeControlProps {
-  qrCodeId: string
   logoShape: string
   onShapeUpdate: (logoShape: string) => Promise<void>
 }
 
 export default function LogoShapeControl({ 
-  qrCodeId, 
   logoShape: initialShape,
   onShapeUpdate 
 }: LogoShapeControlProps) {

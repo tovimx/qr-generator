@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 
+// Props are intentionally unused - component exports the QR code rendered by parent
 interface QRCodeExporterProps {
-  value: string
+  value?: string
   logoUrl?: string | null
   logoSize?: number
   logoShape?: string
@@ -12,14 +13,9 @@ interface QRCodeExporterProps {
   fgColor?: string
 }
 
-export default function QRCodeExporter({ 
-  value, 
-  logoUrl, 
-  logoSize = 30,
-  logoShape = 'square',
-  cornerRadius = 0,
-  fgColor = '#000000'
-}: QRCodeExporterProps) {
+// Props are passed but not used - the component finds and exports the QR element from DOM
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function QRCodeExporter(props: QRCodeExporterProps) {
   const [exporting, setExporting] = useState(false)
   const [transparentBg, setTransparentBg] = useState(true)
 
@@ -35,9 +31,7 @@ export default function QRCodeExporter({
         return
       }
 
-      // Calculate scale factor
-      const currentSize = element.offsetWidth
-      const scale = size / currentSize
+      // Find the QR code element (currentSize removed as unused)
 
       if (format === 'png') {
         // Find the actual QR code element with the export target class
@@ -50,14 +44,14 @@ export default function QRCodeExporter({
         
         // Get current dimensions
         const rect = qrElement.getBoundingClientRect()
-        const currentSize = rect.width || 256
+        const currentQRSize = rect.width || 256
         
         // Use html-to-image with proper settings
         // The key is using both width/height AND pixelRatio together
         const dataUrl = await htmlToImage.toPng(qrElement, {
-          width: currentSize,
-          height: currentSize,
-          pixelRatio: size / currentSize, // This scales the output to desired size
+          width: currentQRSize,
+          height: currentQRSize,
+          pixelRatio: size / currentQRSize, // This scales the output to desired size
           backgroundColor: transparentBg ? null : '#ffffff',
           cacheBust: true
         })
@@ -76,9 +70,6 @@ export default function QRCodeExporter({
           console.error('QR code export target not found')
           return
         }
-        
-        // Get the current size of the QR element
-        const currentQRSize = qrElement.offsetWidth || 256
         
         // For SVG, scale using width/height
         const dataUrl = await htmlToImage.toSvg(qrElement, {
