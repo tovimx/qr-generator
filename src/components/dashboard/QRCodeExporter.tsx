@@ -52,7 +52,7 @@ export default function QRCodeExporter(props: QRCodeExporterProps) {
           width: currentQRSize,
           height: currentQRSize,
           pixelRatio: size / currentQRSize, // This scales the output to desired size
-          backgroundColor: transparentBg ? null : '#ffffff',
+          backgroundColor: transparentBg ? undefined : '#ffffff',
           cacheBust: true
         })
         
