@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type Session } from '@supabase/supabase-js';
 import type { Page } from '@playwright/test';
 
 // Test environment Supabase client
@@ -35,6 +35,7 @@ export async function createTestUser(email: string, password: string) {
 }
 
 // Delete a test user from Supabase (requires admin privileges)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function deleteTestUser(userId: string) {
   // Note: This requires admin privileges which the anon key doesn't have
   // In a real test environment, you'd use a service role key or 
@@ -59,7 +60,7 @@ export async function loginTestUser(email: string, password: string) {
 }
 
 // Set authentication cookies in the browser
-export async function setAuthCookies(page: Page, session: any) {
+export async function setAuthCookies(page: Page, session: Session) {
   // Set the Supabase auth cookies
   await page.context().addCookies([
     {
@@ -95,7 +96,7 @@ export async function authenticatePage(page: Page, email: string, password: stri
     }
   } catch (error) {
     // If login fails, try to create the user first
-    console.log('Login failed, attempting to create user...');
+    console.log('Login failed, attempting to create user...', error);
     await createTestUser(email, password);
     
     // Now login
@@ -118,6 +119,7 @@ export function generateTestEmail(prefix = 'test') {
 }
 
 // Clean up test data (to be called after tests)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function cleanupTestData(userId: string) {
   // In a real test environment, you would:
   // 1. Delete the user's QR codes
