@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { User, QRCode, Link } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import LinkEditor from './LinkEditor'
@@ -11,7 +11,7 @@ import QRColorPicker from './QRColorPicker'
 import QRCodeExporter from './QRCodeExporter'
 import QRCodeWithLogo from './QRCodeWithLogo'
 import QRValidationWarning from './QRValidationWarning'
-import { getQRCodeUrl } from '@/lib/utils/qr-code'
+import { getQRCodeUrl, getAppBaseUrl } from '@/lib/utils/qr-code'
 
 interface QRCodeWithRelations extends QRCode {
   links: Link[]
@@ -33,6 +33,26 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
   const [redirectType, setRedirectType] = useState(initialQrCode?.redirectType || 'links')
   const [redirectUrl, setRedirectUrl] = useState(initialQrCode?.redirectUrl || '')
   const router = useRouter()
+  const [domains, setDomains] = useState<{ id: string; hostname: string; primary: boolean; verified: boolean }[]>([])
+  const [selectedBaseUrl, setSelectedBaseUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadDomains = async () => {
+      try {
+        const res = await fetch('/api/domains', { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          const list = (data.domains || []) as { id: string; hostname: string; primary: boolean; verified: boolean }[]
+          setDomains(list)
+          const primary = list.find(d => d.primary)
+          if (primary) {
+            setSelectedBaseUrl(`https://${primary.hostname}`)
+          }
+        }
+      } catch {}
+    }
+    loadDomains()
+  }, [])
 
   const handleCreateQRCode = async () => {
     setLoading(true)
@@ -206,7 +226,7 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
     )
   }
 
-  const qrCodeUrl = getQRCodeUrl(qrCode.shortCode)
+  const qrCodeUrl = getQRCodeUrl(qrCode.shortCode, selectedBaseUrl ? { host: selectedBaseUrl } : undefined)
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -217,6 +237,22 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
               Your QR Code
             </h3>
             <div className="flex flex-col items-center">
+              {/* Domain selector */}
+              <div className="w-full mb-4 flex items-center justify-between">
+                <label className="text-sm text-gray-700">Domain to encode:</label>
+                <select
+                  value={selectedBaseUrl || getAppBaseUrl()}
+                  onChange={(e) => setSelectedBaseUrl(e.target.value)}
+                  className="ml-2 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900"
+                >
+                  <option value={getAppBaseUrl()}>Current origin ({getAppBaseUrl()})</option>
+                  {domains.map(d => (
+                    <option key={d.id} value={`https://${d.hostname}`}>
+                      {d.hostname}{d.primary ? ' • primary' : ''}{!d.verified ? ' • unverified' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {/* Preview background to show transparency */}
               <div 
                 className="qr-code-container p-4 rounded-lg"

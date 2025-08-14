@@ -45,12 +45,19 @@ export async function POST(request: Request) {
       }
     }
 
+    // Ensure a client (tenant) exists for this user
+    let client = await prisma.client.findUnique({ where: { ownerUserId: user.id } })
+    if (!client) {
+      client = await prisma.client.create({ data: { ownerUserId: user.id } })
+    }
+
     // Create new QR code
     const qrCode = await prisma.qRCode.create({
       data: {
         userId,
         shortCode: shortCode!,
         title: 'My QR Code',
+        clientId: client.id,
       },
       include: {
         links: {

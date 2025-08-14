@@ -3,6 +3,7 @@ import { createClient } from '@/lib/auth/supabase/server'
 import { prisma } from '@/lib/db/prisma'
 import QRCodeManager from '@/components/dashboard/QRCodeManager'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
+import DomainManager from '@/components/dashboard/DomainManager'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -61,6 +62,7 @@ export default async function DashboardPage() {
         <div className="px-4 py-6 sm:px-0">
           <h1 className="text-2xl font-bold text-gray-900 mb-8">Your QR Code</h1>
           <QRCodeManager user={dbUser} qrCode={dbUser.qrCode} />
+          <DomainManager />
         </div>
       </main>
     </div>
