@@ -72,6 +72,92 @@
 
 ---
 
+## Session: 2025-08-10 - Multi‑Domain & Custom Domains (Architecture + Phase 1)
+
+**Previous context**: Base URL bug fixed; need to support QR URLs across multiple domains (platform, client subdomains, and client-owned custom domains) with clean routing and good UX.
+
+**Today's goal**:
+- [ ] Define data model for tenants and domains (Prisma)
+- [ ] Add host-based tenant resolution utility + middleware wiring
+- [ ] Extend QR URL builder to support explicit host and primary-domain fallback
+- [ ] Scaffold Domain Management APIs (add, list, set primary)
+- [ ] Create basic Domain Management UI (add domain, set primary, status)
+- [ ] Draft DNS instructions and verification plan (TXT/HTTP) for next phase
+
+**Implementation plan (Phase 1)**:
+1. Data model
+   - Add `Client` and `Domain` models; link `QRCode.clientId` and optionally `QRCode.domainId` (nullable).
+   - Fields: `Domain { id, clientId, hostname, type: ('platform'|'subdomain'|'custom'), verified: boolean, primary: boolean, createdAt, updatedAt }`.
+   - Backfill: create a Default Client; associate existing QR codes and platform domain.
+2. Tenant resolution
+   - `resolveTenant(hostname) -> { clientId, domain }` utility using Prisma.
+   - Wire in `src/middleware.ts` to attach resolved tenant via request headers or request attribute.
+3. URL builder
+   - Update `getQRCodeUrl(shortCode, opts?: { host?: string })` to use:
+     - `opts.host` if provided; else tenant primary domain; else `window.location.origin`; else env fallback.
+4. API scaffolding
+   - `POST /api/domains` (add domain), `GET /api/domains` (list), `PATCH /api/domains/:id/primary` (set primary).
+   - AuthZ: only owner can manage domains for their client.
+5. UI scaffolding
+   - New Dashboard section: Domains.
+   - Add domain form (hostname, type), list domains with badges (primary, verified), set primary button.
+   - In QR export panel: domain selector (default to primary) with warning if unverified.
+6. Docs (internal)
+   - Draft DNS guide (CNAME for subdomain, ALIAS/ANAME/A for apex; Vercel examples), verification overview.
+
+**Out of scope this session (Phase 2)**:
+- Automated domain verification (DNS TXT or HTTP challenge) and status polling.
+- Hosting provider integration (e.g., Vercel Domains API) for verification + SSL provisioning.
+- Redirect and link pages fully scoped by `clientId` in all queries (to do after tenant resolution is in place).
+- Analytics: capture `host` on scans/clicks.
+
+**Acceptance criteria (Phase 1)**:
+- New Prisma models/migrations applied; existing data preserved and mapped to a Default Client.
+- Middleware resolves tenant from `Host` and makes it available to handlers.
+- `getQRCodeUrl` can produce URLs for a chosen host and defaults to the tenant primary domain.
+- Domain Management UI/APIs allow adding domains and marking one as primary (verification is a stub/boolean for now).
+- Platform domain behavior remains unchanged; no regressions to existing QR flows.
+
+**Risks/Notes**:
+- Migration must be carefully backfilled; add a script or one-time migration step to associate existing QR codes.
+- Don’t enable serving unverified custom domains yet; only allow selection in UI with clear warnings.
+- Keep admin/auth on platform domain to avoid cross-domain cookie issues.
+
+**Next session focus (Phase 2)**:
+1. Domain verification flow (DNS TXT and/or HTTP challenge) with status checks.
+2. Provider integration (e.g., Vercel Domains API) to attach domains and provision SSL automatically.
+3. Public routes scoping: ensure `/q/[shortCode]` and link pages resolve by `{clientId, shortCode}`.
+4. Analytics: store `host` per scan/click; update dashboards to filter by domain.
+5. Add E2E tests across platform, subdomain, and custom domain hosts.
+6. Add a small “DNS instructions” modal in Domain Manager (copy‑paste records, status hints).
+
+**Questions for next session**:
+- Start Phase 2 (verification + host‑scoped queries) immediately, or schedule a follow‑up session after domain onboarding trials?
+
+**Commands planned**:
+- `npx prisma migrate dev` (local) / `npx prisma migrate deploy` (prod)
+- Optional backfill script: `ts-node scripts/backfill-default-client.ts`
+- Run dev and validate: `npm run dev`
+
+**Ready checklist before coding**:
+- Confirm hosting strategy (Vercel vs self-host) to tailor DNS docs.
+- Confirm desired default behavior when no primary domain is set (fallback to platform domain).
+
+**Important note**:
+- Middleware remains lean (no DB access at Edge). Tenant resolution is currently server-side via `resolveTenant()`; public QR routes continue to work without host-scoped queries until Phase 2.
+
+**Next steps (operator checklist)**:
+- Apply DB changes: `npx prisma generate` then `npx prisma migrate dev -n "multi-domain-phase1"` (dev) / `npx prisma migrate deploy` (prod).
+- Deploy the app so the new APIs/UI are available.
+- Attach custom domain in hosting (e.g., Vercel → Project Settings → Domains). Add CNAME/ALIAS per instructions and wait for SSL “Ready”.
+- In Dashboard → Domains: add the same hostname, set as Primary.
+- In QR section: choose “Domain to encode” (defaults to primary), export SVG/PNG, and replace any old images.
+
+**How it works now**:
+- New QR exports encode `https://<selected-domain>/q/<shortCode>`.
+- Next.js serves `/q/[shortCode]` on any attached domain; Phase 2 will enforce tenant scoping `{ clientId, shortCode }` and add verification.
+- URL builder supports an explicit host override and otherwise defaults to current origin/env fallback.
+
 ## Session: 2025-08-02 23:30 - Playwright Testing Implementation & Authentication Flow
 
 **Previous context**: MVP implementation completed with basic QR functionality and Supabase auth

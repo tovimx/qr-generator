@@ -13,8 +13,36 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   qrCode    QRCode?
+  // Each user owns a single Client (tenant) in this initial design via Client.ownerUserId
 
   @@map("users")
+}
+
+model Client {
+  id           String   @id @default(uuid())
+  ownerUserId  String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  qrCodes      QRCode[]
+  domains      Domain[]
+
+  @@map("clients")
+}
+
+model Domain {
+  id        String   @id @default(uuid())
+  clientId  String
+  hostname  String   @unique
+  type      String   @default("custom") // platform | subdomain | custom
+  verified  Boolean  @default(false)
+  primary   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  qrCodes   QRCode[]
+
+  @@index([clientId])
+  @@map("domains")
 }
 
 model QRCode {
@@ -35,6 +63,11 @@ model QRCode {
   links        Link[]
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   scans        Scan[]
+  // Tenanting (Phase 1: optional, to be backfilled and enforced in Phase 2)
+  clientId     String?
+  client       Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  domainId     String?
+  domain       Domain?  @relation(fields: [domainId], references: [id], onDelete: SetNull)
 
   @@map("qr_codes")
 }
