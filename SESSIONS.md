@@ -72,6 +72,88 @@
 
 ---
 
+## Session: 2025-08-14 - Multi‑Domain Phase 1 Implementation & Backfill
+
+**Previous context**: Phase 1 architecture planned (models, APIs, UI). Prisma showed drift due to earlier `db push` state; needed a safe baseline + migration path and data backfill.
+
+**Today's goal**:
+- [x] Commit Phase 1 code changes (models/APIs/UI/tenancy utils)
+- [x] Add Prisma `directUrl` for safe migrations (non‑pooled)
+- [x] Create baseline migration from existing DB (avoid reset)
+- [x] Generate/apply Phase 1 migration (Client/Domain + QR tenant fields)
+- [x] Add and run one‑time backfill script
+- [x] Add docs for domain management (Phase 1)
+- [x] Add npm script for backfill and install `tsx`
+- [x] Guide domain attachment on Vercel and testing
+
+**Implementation notes**:
+- Prisma
+  - Added `directUrl = env("DIRECT_DATABASE_URL")` to datasource for migrations through a direct (non‑pooled) connection.
+  - Baseline: generated `prisma/migrations/0_init/migration.sql` from live DB, then marked as applied with `prisma migrate resolve`.
+  - Created and applied Phase 1 migration `20250814023534_multi_domain_phase1` adding `clients`, `domains`, and `QRCode.clientId/domainId` with FKs and indexes.
+- API & UI
+  - Implemented Domain Management APIs: `GET/POST /api/domains`, `PATCH /api/domains/:id/primary` (owner‑scoped).
+  - Added `DomainManager` in dashboard; badges for Primary/Verified; ability to set primary.
+  - Updated `QRCodeManager` with domain selector; QR export encodes `https://<selected-host>/q/<shortCode>`.
+  - Utility: `resolveTenant()` server‑side only; `getAppBaseUrl()` and `getQRCodeUrl()` support host override.
+- Backfill & Docs
+  - Added `scripts/backfill-default-client.ts` to create a Client per User, ensure a primary platform Domain (from `NEXT_PUBLIC_APP_URL`), and set missing `clientId`/`domainId` on existing QR codes.
+  - Added `docs/domains.md` with DNS guidance (CNAME for subdomain; A=76.76.21.21 for apex) and Phase 2 verification preview.
+  - Added npm script: `backfill:clients` using `tsx`; installed `tsx` as dev dependency.
+- Ops & Guidance
+  - Ran backfill successfully (created clients/domains; backfilled QRs).
+  - Provided step‑by‑step for attaching real domains on Vercel and third‑party DNS (e.g., Namecheap): use CNAME to `cname.vercel-dns.com` for subdomains; avoid Vercel “Redirect to another domain” for QR host.
+
+**Blockers/Issues**:
+- Prisma drift due to prior schema without migrations; resolved via baseline migration approach (no data loss).
+- `DIRECT_DATABASE_URL` env required for migrate operations; handled by passing env during CLI commands.
+- App shows "Pending DNS" (informational only in Phase 1); actual readiness depends on Vercel status and DNS propagation.
+
+**Completed**:
+- [x] Client/Domain models added with QR tenant fields
+- [x] Prisma migrations: baseline + multi‑domain Phase 1
+- [x] Domain APIs (add/list/set primary)
+- [x] Dashboard Domain Manager UI
+- [x] QR domain selector wired to exports
+- [x] Backfill script + executed
+- [x] Docs/domains.md + npm script + `tsx` install
+- [x] Git commits pushed to `main`
+
+**Next session focus**:
+1. Domain verification (Phase 2)
+   - Add `verificationToken`, `verifiedAt`, `method` to `Domain`.
+   - Endpoints: request verification (TXT/HTTP) + verify check; UI to copy tokens and poll status.
+   - Optional: Vercel Domains API integration for automated checks + SSL.
+2. Host‑scoped queries
+   - Update public routes (`/api/qr/[shortCode]`, `/q/[shortCode]`) to resolve host→client and query `QRCode` by `{ clientId, shortCode }`.
+   - Fallback strategies when host not found or not verified.
+3. Analytics enrichment
+   - Extend `Scan` with `host` and optional `domainId`; capture from request headers; expose filters later.
+4. Testing
+   - E2E across platform + attached domains; add tests for primary switching and QR export URLs.
+5. DNS UX
+   - Add in‑app DNS instructions modal and "copy record" helpers; surface Vercel readiness hints.
+
+**References to pending work**:
+- Middleware tenant resolution at edge remains out‑of‑scope; keep server‑side `resolveTenant()` for now.
+- Verification flow is not implemented; UI shows informational "Pending DNS" only.
+- No automatic prevention of unverified domain usage yet; add gating in Phase 2 if required.
+- CI/CD for Prisma migrations (prod): consider `prisma migrate deploy` in a protected workflow.
+
+**Commands used**:
+- `git add -A && git commit ... && git push`
+- `npx prisma migrate diff --from-empty --to-url "$DATABASE_URL" --script > prisma/migrations/0_init/migration.sql`
+- `DIRECT_DATABASE_URL="$DATABASE_URL" npx prisma migrate resolve --applied 0_init`
+- `DIRECT_DATABASE_URL="$DATABASE_URL" npx prisma migrate dev -n "multi-domain-phase1"`
+- `npm i -D tsx` and `npm run backfill:clients`
+- Verified Vercel domain attachment and DNS (CNAME/A) configuration
+
+**Ready checklist for operator**:
+- Vercel: Domain shows "Ready"; SSL provisioned.
+- App: Domain added in Dashboard; set Primary if desired.
+- QR export: Encodes selected host; public routes work on attached domain(s).
+- Analytics: Scans increment on hits to attached host.
+
 ## Session: 2025-08-10 - Multi‑Domain & Custom Domains (Architecture + Phase 1)
 
 **Previous context**: Base URL bug fixed; need to support QR URLs across multiple domains (platform, client subdomains, and client-owned custom domains) with clean routing and good UX.
