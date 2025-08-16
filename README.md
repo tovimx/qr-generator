@@ -1,4 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dynamic QR Code Application
+
+This is a Next.js application for creating customized and dynamic QR codes with Linktree-style pages. Built with Next.js 15, Prisma, PostgreSQL, and Supabase.
+
+## ✨ Features
+
+### ✅ **Implemented**
+- **🎯 Multi-QR Dashboard** - Create up to 10 QR codes per user with tab-based interface
+- **🎨 Advanced Customization** - Colors, rounded corners, logos, and real-time preview
+- **🔗 Dynamic Destinations** - Switch between Linktree-style pages or direct URL redirects
+- **🌐 Multi-Domain Support** - Use custom domains for QR code URLs
+- **📊 Analytics Tracking** - Scan count tracking with soft delete for data preservation
+- **🔐 Authentication** - Secure login/signup with Supabase Auth
+- **📱 Responsive Design** - Mobile-first UI with professional styling
+- **⚡ Export Options** - SVG and PNG export with multiple resolutions
+
+## Project Documentation
+
+- **[📋 PLAN.md](./PLAN.md)** - Complete project roadmap and implementation status
+- **[🧠 CLAUDE.md](./CLAUDE.md)** - Claude Code session instructions and guidelines
+- **[📝 SESSIONS.md](./SESSIONS.md)** - Development session history and progress tracking
 
 ## Getting Started
 

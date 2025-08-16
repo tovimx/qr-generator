@@ -148,6 +148,101 @@
 - `npm i -D tsx` and `npm run backfill:clients`
 - Verified Vercel domain attachment and DNS (CNAME/A) configuration
 
+---
+
+## Session: 2025-08-16 - Multi-QR Dashboard Implementation
+
+**Previous context**: Application supported only single QR code per user. Need to implement tabs-based dashboard allowing multiple QR codes per user with full CRUD functionality.
+
+**Today's goal**:
+- [x] Remove unique constraint on userId to allow multiple QR codes per user
+- [x] Add position, title, and soft delete fields to QR schema
+- [x] Create database migration for multi-QR support
+- [x] Update API endpoints to handle multiple QR codes
+- [x] Build tabs-based dashboard UI with create/edit/delete functionality
+- [x] Fix state synchronization issues between components
+
+**Implementation notes**:
+- Database Schema Changes:
+  - Removed `userId` unique constraint from `QRCode` model
+  - Added `position` (INT), `deletedAt` (DateTime?), and made `title` non-nullable with default
+  - Updated User model relationship from `qrCode QRCode?` to `qrCodes QRCode[]`
+  - Added indexes for efficient multi-QR queries: `userId_deletedAt` and `userId_position`
+- API Enhancements:
+  - `GET /api/qr-codes` - Fetch all user's QR codes (excluding soft deleted)
+  - `POST /api/qr-codes` - Create new QR code with auto-incrementing position (max 10 per user)
+  - `PUT /api/qr-codes` - Bulk reorder QR codes by updating positions
+  - `PUT /api/qr-codes/[id]` - Update QR code title
+  - `DELETE /api/qr-codes/[id]` - Soft delete QR code (prevents deleting last one)
+- UI Components:
+  - `QRCodeTabs` - Horizontal tab navigation with scan counts, edit/delete controls
+  - `MultiQRCodeManager` - Parent component managing tab state and QR selection
+  - Updated `QRCodeManager` - Now works with selected QR code from tabs
+  - Added inline title editing with save/cancel functionality
+  - Added create button (+) with 10 QR code limit enforcement
+- Migration Process:
+  - Created manual migration script due to environment variable issues
+  - Successfully applied schema changes to production database
+  - Existing single QR codes became first tab with proper backward compatibility
+
+**Blockers/Issues**:
+- Database migration initially failed due to `DIRECT_DATABASE_URL` environment variable not loading
+- State synchronization bug: New QR codes showed same short URL/scan counts as first QR code
+- Fixed with proper React state management and useEffect hooks for component synchronization
+- Destination URL display was poorly styled and truncated - fixed with proper CSS layout
+
+**Completed**:
+- [x] Database schema updated for multi-QR support
+- [x] Migration applied successfully to production database
+- [x] All API endpoints updated for multiple QR codes
+- [x] Tabs-based dashboard UI implemented
+- [x] QR code creation, editing, deletion functionality
+- [x] State synchronization issues resolved
+- [x] Proper error handling and loading states
+- [x] UI styling improvements for destination display
+
+**Next session focus**:
+1. **TanStack Query Refactor** (High Priority)
+   - Replace manual `router.refresh()` calls with TanStack Query
+   - Implement automatic cache invalidation and background synchronization
+   - Add optimistic updates for better UX
+   - Eliminate state synchronization bugs entirely
+2. **Domain Verification** (Phase 2 continuation)
+   - Complete verification token system
+   - Add verification status UI indicators
+   - Implement domain verification workflow
+3. **Enhanced Analytics**
+   - Per-QR code analytics dashboard
+   - Export analytics data functionality
+   - Real-time scan tracking
+4. **QR Code Features**
+   - QR code templates/presets
+   - Advanced styling options
+   - Bulk operations (duplicate, export multiple)
+5. **Performance & UX**
+   - Add drag-and-drop tab reordering
+   - Implement QR code search/filtering
+   - Add keyboard shortcuts for power users
+
+**Key Technical Decisions**:
+- Chose soft delete over hard delete to preserve analytics data
+- Limited QR codes to 10 per user to prevent abuse
+- Used position-based ordering for consistent tab sequence
+- Implemented client-side state management with server synchronization
+
+**Commands used**:
+- `npm install lucide-react dotenv`
+- `node scripts/run-migration.js` (custom migration due to env issues)
+- `npx prisma generate`
+- `npm run build` (successful compilation)
+- `npm run dev` (testing in development)
+
+**State Management Issues Encountered & Solutions**:
+- **Problem**: React components showing stale data after server mutations
+- **Root Cause**: Manual `router.refresh()` + complex component state dependencies
+- **Temporary Fix**: Added useEffect hooks for prop synchronization
+- **Permanent Solution**: TanStack Query refactor scheduled for next session
+
 **Ready checklist for operator**:
 - Vercel: Domain shows "Ready"; SSL provisioned.
 - App: Domain added in Dashboard; set Primary if desired.

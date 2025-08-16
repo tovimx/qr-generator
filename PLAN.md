@@ -1,4 +1,4 @@
-# CLAUDE.md - Dynamic QR Code Application with Next.js 15
+# PLAN.md - Dynamic QR Code Application Roadmap
 
 ## Project Overview
 
@@ -23,7 +23,7 @@ This allows the system to serve both clients who need a simple link page and tho
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: Supabase Auth with SSR
 - **QR Generation**: qrcode.js + react-qr-code
-- **State Management**: Zustand (if needed)
+- **State Management**: React State + TanStack Query (planned)
 - **Validation**: Zod + React Hook Form
 - **Analytics**: Plausible/Posthog or custom implementation
 - **Hosting**: Vercel (Edge Functions, ISR)
@@ -72,18 +72,18 @@ This allows the system to serve both clients who need a simple link page and tho
 
 #### 1.4 TypeScript Configuration
 
-- [ ] Configure tsconfig.json with strict mode
-- [ ] Enable all strict checks
-- [ ] Configure paths for absolute imports
-- [ ] Configure baseUrl
-- [ ] Add types for libraries without types
-- [ ] Configure CSS module declarations
+- [x] Configure tsconfig.json with strict mode
+- [x] Enable all strict checks
+- [x] Configure paths for absolute imports
+- [x] Configure baseUrl
+- [x] Add types for libraries without types
+- [x] Configure CSS module declarations
 
 #### 1.5 Linting and Formatting Configuration
 
-- [ ] Configure ESLint with Next.js 15 rules
+- [x] Configure ESLint with Next.js 15 rules
 - [ ] Add accessibility plugins
-- [ ] Configure Prettier with tailwind plugin
+- [x] Configure Prettier with tailwind plugin
 - [ ] Create .editorconfig for consistency
 - [ ] Configure husky for pre-commit hooks
 - [ ] Add lint-staged to optimize checks
@@ -91,12 +91,12 @@ This allows the system to serve both clients who need a simple link page and tho
 
 #### 1.6 Environment Variables
 
-- [ ] Create .env.local for development
-- [ ] Create .env.example with all necessary variables
-- [ ] Document each environment variable
+- [x] Create .env.local for development
+- [x] Create .env.example with all necessary variables
+- [x] Document each environment variable
 - [ ] Configure validation with zod
 - [ ] Create TypeScript types for process.env
-- [ ] Add .env.local to .gitignore
+- [x] Add .env.local to .gitignore
 
 ### Phase 2: Database Configuration
 
@@ -106,9 +106,9 @@ This allows the system to serve both clients who need a simple link page and tho
 - [x] Create new PostgreSQL database
 - [x] Get connection string
 - [x] Configure connection pooling
-- [ ] Enable SSL for connections
-- [ ] Configure pgBouncer if necessary
-- [ ] Document credentials securely
+- [x] Enable SSL for connections
+- [x] Configure pgBouncer if necessary
+- [x] Document credentials securely
 
 #### 2.2 Prisma Configuration
 
@@ -120,7 +120,7 @@ This allows the system to serve both clients who need a simple link page and tho
   - [x] Configure cascades correctly
   - [x] Use @map for table names
   - [x] Configure automatic @updatedAt
-- [ ] Enable necessary preview features
+- [x] Enable necessary preview features
 - [x] Configure client generator
 
 #### 2.3 Database Schema Design
@@ -130,26 +130,26 @@ This allows the system to serve both clients who need a simple link page and tho
 - [x] Design Link model for Linktree-style pages
 - [x] Design Analytics models (QRScan, LinkClick)
 - [ ] Add models for plans/subscriptions
-- [ ] Implement soft deletes if necessary
-- [ ] Add audit fields
+- [x] Implement soft deletes if necessary
+- [x] Add audit fields
 
 #### 2.4 Migrations and Seeders
 
 - [x] Create initial migration
-- [ ] Verify generated SQL
-- [ ] Create seed.ts file with test data
-- [ ] Configure npm scripts for migrations
-- [ ] Document migration process
-- [ ] Create backup before production migrations
+- [x] Verify generated SQL
+- [x] Create seed.ts file with test data
+- [x] Configure npm scripts for migrations
+- [x] Document migration process
+- [x] Create backup before production migrations
 
 #### 2.5 Database Client
 
 - [x] Create PrismaClient singleton
-- [ ] Configure appropriate logging
-- [ ] Implement reconnection handling
+- [x] Configure appropriate logging
+- [x] Implement reconnection handling
 - [ ] Add Prisma middleware if necessary
 - [ ] Configure performance metrics
-- [ ] Implement connection pooling
+- [x] Implement connection pooling
 
 ### Phase 3: Authentication System
 
@@ -161,7 +161,7 @@ This allows the system to serve both clients who need a simple link page and tho
   - [x] Email/Password
   - [ ] OAuth (Google, GitHub)
   - [ ] Magic Links
-- [ ] Configure password policies
+- [x] Configure password policies
 - [ ] Enable email confirmation
 - [ ] Customize email templates
 
@@ -172,8 +172,8 @@ This allows the system to serve both clients who need a simple link page and tho
 - [x] Configure cookies correctly
 - [x] Implement authentication middleware
 - [x] Protect private routes
-- [ ] Handle refresh tokens
-- [ ] Implement global logout
+- [x] Handle refresh tokens
+- [x] Implement global logout
 
 #### 3.3 Authentication Flows
 
@@ -183,7 +183,7 @@ This allows the system to serve both clients who need a simple link page and tho
 - [ ] Implement email verification
 - [ ] Implement password change
 - [ ] Implement profile update
-- [ ] Handle expired sessions
+- [x] Handle expired sessions
 
 #### 3.4 Security
 
@@ -543,52 +543,129 @@ This allows the system to serve both clients who need a simple link page and tho
 - [ ] Feature flags for new features
 - [ ] A/B testing in production
 
-## Session Management Protocol
+## Completed Additional Phases
 
-This project uses a structured session management system. Every coding session is documented in SESSIONS.md.
+### Phase 11: Multi-Domain Support (✅ Completed)
 
-### Starting a New Session
-1. Read the last session entry in SESSIONS.md
-2. Create a new session entry with clear goals
-3. Reference previous session's "Next session focus"
+#### 11.1 Domain Management System
+- [x] Create Client and Domain models
+- [x] Add QR code tenant fields (clientId, domainId)
+- [x] Implement baseline migration strategy
+- [x] Create multi-domain Phase 1 migration
+- [x] Add domain management APIs (GET/POST /api/domains)
+- [x] Set primary domain functionality
 
-### During a Session
-- Update the session entry as you progress
-- Mark goals as completed with [x]
-- Document any blockers immediately
-- Note key decisions made
+#### 11.2 Dashboard Integration
+- [x] Add DomainManager component to dashboard
+- [x] Primary/Verified domain badges
+- [x] Domain selector in QR code export
+- [x] QR codes encode selected domain host
 
-### Ending a Session
-1. Update "Completed" section
-2. Define clear "Next session focus"
-3. Commit all changes including SESSIONS.md
-4. Run /clear if context is getting large
+#### 11.3 Data Migration & Backfill
+- [x] Create backfill script for existing users
+- [x] Generate Client per User relationship
+- [x] Set default platform domain
+- [x] Backfill existing QR codes with tenant data
 
-### Session Entry Template
-Always follow the template structure in SESSIONS.md for consistency.
+### Phase 12: Multi-QR Dashboard (✅ Completed)
 
-### Important: When starting any new Claude Code instance
-Always start with: "Check SESSIONS.md for the last session status and continue from there"
+#### 12.1 Database Schema Updates
+- [x] Remove userId unique constraint
+- [x] Add position, title, deletedAt fields
+- [x] Update User -> QRCode relationship (one-to-many)
+- [x] Add indexes for multi-QR queries
+- [x] Implement soft delete strategy
 
-## Development Instructions for Claude
+#### 12.2 API Enhancements
+- [x] GET /api/qr-codes - Fetch all user's QR codes
+- [x] POST /api/qr-codes - Create new QR code (max 10 limit)
+- [x] PUT /api/qr-codes/[id] - Update QR code title
+- [x] DELETE /api/qr-codes/[id] - Soft delete with protection
+- [x] Bulk reorder functionality
 
-When implementing this project:
+#### 12.3 Tabs Interface
+- [x] QRCodeTabs component with horizontal navigation
+- [x] Inline title editing with save/cancel
+- [x] Create button (+) with limit enforcement
+- [x] Delete functionality with confirmation
+- [x] Scan count display per tab
+- [x] Auto-selection of newly created QR codes
 
-1. Follow the phases sequentially
-2. Mark each checkbox as completed
-3. Use the latest Next.js 15 features (App Router, Server Components)
-4. Implement proper error handling and loading states
-5. Ensure all components are accessible (WCAG 2.1 AA)
-6. Write clean, typed, and documented code
-7. Follow the established folder structure
-8. Implement tests for critical paths
-9. Optimize for Core Web Vitals
-10. Document any deviations from the plan
+#### 12.4 State Management
+- [x] Multi-component state synchronization
+- [x] React useEffect hooks for prop updates
+- [x] Proper error handling and loading states
+- [x] Fixed state sync bugs between components
 
-## Git Commit Rules
+## Next Priority Features
 
-IMPORTANT: NEVER include the following in git commits:
-- "🤖 Generated with Claude Code"
-- "Co-Authored-By: Claude <noreply@anthropic.com>"
-- Any mention of Claude or AI assistance
-- Keep commits clean and professional
+### Phase 13: TanStack Query Refactor (🚀 High Priority)
+
+#### 13.1 Server State Management
+- [ ] Replace manual router.refresh() calls
+- [ ] Implement automatic cache invalidation
+- [ ] Add optimistic updates for better UX
+- [ ] Background synchronization and refetching
+
+#### 13.2 Query Implementation
+- [ ] useQuery for QR codes list
+- [ ] useMutation for create/update/delete operations
+- [ ] Query key strategy and invalidation
+- [ ] Error handling and retry logic
+
+### Phase 14: Domain Verification (Phase 2)
+
+#### 14.1 Verification System
+- [ ] Add verificationToken, verifiedAt, method to Domain
+- [ ] Request verification endpoints (TXT/HTTP)
+- [ ] Verification check and status polling
+- [ ] Vercel Domains API integration (optional)
+
+#### 14.2 Host-Scoped Queries
+- [ ] Update public routes for host resolution
+- [ ] Query QRCode by {clientId, shortCode}
+- [ ] Fallback strategies for unverified domains
+- [ ] Verification gating (optional)
+
+### Phase 15: Enhanced Analytics
+
+#### 15.1 Analytics Dashboard
+- [ ] Per-QR code analytics display
+- [ ] Export analytics data functionality
+- [ ] Real-time scan tracking
+- [ ] Enhanced Scan model with host/domainId
+
+#### 15.2 Analytics Features
+- [ ] Geographic heat maps
+- [ ] Device/browser analysis
+- [ ] Time-based trends
+- [ ] Comparative analytics between QR codes
+
+### Phase 16: Advanced QR Features
+
+#### 16.1 QR Code Templates
+- [ ] Reusable QR code templates
+- [ ] Template marketplace/library
+- [ ] Advanced styling presets
+- [ ] Brand consistency tools
+
+
+### Phase 17: Performance & UX
+
+#### 17.1 User Experience
+- [ ] Drag-and-drop tab reordering
+- [ ] QR code search and filtering
+- [ ] Keyboard shortcuts for power users
+- [ ] Advanced tooltips and help system
+
+#### 17.2 Performance Optimization
+- [ ] Code splitting and lazy loading
+- [ ] Image optimization
+- [ ] Caching strategies
+- [ ] Bundle size optimization
+
+---
+
+**Project Status**: See [SESSIONS.md](./SESSIONS.md) for implementation history and current status.
+
+**Development Guide**: See [CLAUDE.md](./CLAUDE.md) for Claude Code session instructions and development guidelines.
