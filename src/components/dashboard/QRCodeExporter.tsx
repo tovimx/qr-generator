@@ -108,20 +108,20 @@ export default function QRCodeExporter(props: QRCodeExporterProps) {
           <div className="flex gap-2">
             <button
               onClick={() => setTransparentBg(true)}
-              className={`px-3 py-1 text-xs rounded-md ${
+              className={`px-3 py-1 text-xs rounded-md cursor-pointer ${
                 transparentBg 
                   ? 'bg-indigo-600 text-white' 
-                  : 'bg-gray-200 text-gray-700'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
               Transparent
             </button>
             <button
               onClick={() => setTransparentBg(false)}
-              className={`px-3 py-1 text-xs rounded-md ${
+              className={`px-3 py-1 text-xs rounded-md cursor-pointer ${
                 !transparentBg 
                   ? 'bg-indigo-600 text-white' 
-                  : 'bg-gray-200 text-gray-700'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
               White
@@ -134,7 +134,7 @@ export default function QRCodeExporter(props: QRCodeExporterProps) {
           <button
             onClick={() => downloadQRCode('svg', 1024)}
             disabled={exporting}
-            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 text-sm font-medium"
+            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm font-medium"
           >
             {exporting ? 'Exporting...' : 'Download SVG (Scalable)'}
           </button>
@@ -150,28 +150,28 @@ export default function QRCodeExporter(props: QRCodeExporterProps) {
             <button
               onClick={() => downloadQRCode('png', 512)}
               disabled={exporting}
-              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 text-xs"
+              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs"
             >
               Web (512px)
             </button>
             <button
               onClick={() => downloadQRCode('png', 1024)}
               disabled={exporting}
-              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 text-xs"
+              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs"
             >
               Print (1024px)
             </button>
             <button
               onClick={() => downloadQRCode('png', 2048)}
               disabled={exporting}
-              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 text-xs"
+              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs"
             >
               HD (2048px)
             </button>
             <button
               onClick={() => downloadQRCode('png', 4096)}
               disabled={exporting}
-              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 text-xs"
+              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs"
             >
               4K (4096px)
             </button>

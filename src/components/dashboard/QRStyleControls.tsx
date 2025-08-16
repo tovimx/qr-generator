@@ -49,11 +49,11 @@ export default function QRStyleControls({
             <button
               key={preset.value}
               onClick={() => handleRadiusChange(preset.value)}
-              className={`p-2 text-xs rounded-md transition-colors ${
+              className={`p-2 text-xs rounded-md transition-colors cursor-pointer ${
                 cornerRadius === preset.value
                   ? 'bg-indigo-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
               disabled={loading}
             >
               <div className="text-lg mb-1">{preset.icon}</div>

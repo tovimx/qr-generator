@@ -84,7 +84,7 @@ export default function LogoUploader({
           <button
             onClick={handleRemoveLogo}
             disabled={uploading}
-            className="text-sm text-red-600 hover:text-red-500"
+            className="text-sm text-red-600 hover:text-red-500 cursor-pointer disabled:cursor-not-allowed"
           >
             Remove
           </button>
@@ -156,7 +156,7 @@ export default function LogoUploader({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors disabled:opacity-50"
+              className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
               {uploading ? 'Uploading...' : 'Click to upload logo (PNG, JPG, SVG)'}
             </button>

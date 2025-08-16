@@ -81,7 +81,7 @@ export default function QRValidationWarning({
             </p>
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="text-xs underline ml-auto"
+              className="text-xs underline ml-auto cursor-pointer hover:no-underline"
             >
               {showDetails ? 'Hide' : 'Show'} Details
             </button>
@@ -128,7 +128,7 @@ export default function QRValidationWarning({
                 <div className="pt-2">
                   <button
                     onClick={handleAutoAdjust}
-                    className="px-3 py-1 bg-white rounded-md text-xs font-medium hover:bg-gray-50 border"
+                    className="px-3 py-1 bg-white rounded-md text-xs font-medium hover:bg-gray-50 border cursor-pointer"
                   >
                     🔧 Auto-Adjust to Safe Values
                   </button>

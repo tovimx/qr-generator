@@ -15,7 +15,7 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  qrCode    QRCode?
+  qrCodes   QRCode[]
   // Each user owns a single Client (tenant) in this initial design via Client.ownerUserId
 
   @@map("users")
@@ -49,29 +49,33 @@ model Domain {
 }
 
 model QRCode {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  shortCode    String   @unique
-  title        String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  redirectType String   @default("links")
+  id           String    @id @default(uuid())
+  userId       String
+  shortCode    String    @unique
+  title        String    @default("My QR Code")
+  isActive     Boolean   @default(true)
+  position     Int       @default(0)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  redirectType String    @default("links")
   redirectUrl  String?
-  logoSize     Int      @default(30)
+  logoSize     Int       @default(30)
   logoUrl      String?
-  logoShape    String   @default("square")
-  cornerRadius Int      @default(0)
-  fgColor      String   @default("#000000")
+  logoShape    String    @default("square")
+  cornerRadius Int       @default(0)
+  fgColor      String    @default("#000000")
   links        Link[]
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   scans        Scan[]
   // Tenanting (Phase 1: optional, to be backfilled and enforced in Phase 2)
   clientId     String?
-  client       Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  client       Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
   domainId     String?
-  domain       Domain?  @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  domain       Domain?   @relation(fields: [domainId], references: [id], onDelete: SetNull)
 
+  @@index([userId, deletedAt])
+  @@index([userId, position])
   @@map("qr_codes")
 }
 

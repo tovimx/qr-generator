@@ -84,11 +84,11 @@ export default function QRColorPicker({ fgColor, onColorUpdate }: QRColorPickerP
                 key={preset.color}
                 onClick={() => handleColorChange(preset.color)}
                 disabled={loading}
-                className={`relative group p-2 rounded-md border-2 transition-all ${
+                className={`relative group p-2 rounded-md border-2 transition-all cursor-pointer ${
                   color === preset.color 
                     ? 'border-indigo-500 bg-indigo-50' 
                     : 'border-gray-200 hover:border-gray-300 bg-white'
-                } disabled:opacity-50`}
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
                 title={preset.name}
               >
                 <div className="flex items-center gap-2">

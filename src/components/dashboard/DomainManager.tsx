@@ -85,7 +85,7 @@ export default function DomainManager() {
               <button
                 onClick={addDomain}
                 disabled={adding || !hostname}
-                className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {adding ? 'Adding…' : 'Add Domain'}
               </button>
@@ -110,7 +110,7 @@ export default function DomainManager() {
                         {!d.primary && (
                           <button
                             onClick={() => setPrimary(d.id)}
-                            className="px-3 py-1 text-xs rounded-md bg-gray-100 hover:bg-gray-200"
+                            className="px-3 py-1 text-xs rounded-md bg-gray-100 hover:bg-gray-200 cursor-pointer"
                           >
                             Set Primary
                           </button>

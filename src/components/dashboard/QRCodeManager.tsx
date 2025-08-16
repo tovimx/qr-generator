@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { User, QRCode, Link } from '@prisma/client'
+import { QRCode, Link } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import LinkEditor from './LinkEditor'
 import LogoUploader from './LogoUploader'
@@ -21,12 +21,18 @@ interface QRCodeWithRelations extends QRCode {
 }
 
 interface QRCodeManagerProps {
-  user: User & { qrCode: QRCodeWithRelations | null }
   qrCode: QRCodeWithRelations | null
 }
 
-export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeManagerProps) {
+export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerProps) {
   const [qrCode, setQrCode] = useState(initialQrCode)
+
+  // Update local state when the prop changes
+  useEffect(() => {
+    setQrCode(initialQrCode)
+    setRedirectType(initialQrCode?.redirectType || 'links')
+    setRedirectUrl(initialQrCode?.redirectUrl || '')
+  }, [initialQrCode])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editingDestination, setEditingDestination] = useState(false)
@@ -54,34 +60,6 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
     loadDomains()
   }, [])
 
-  const handleCreateQRCode = async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch('/api/qr-codes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create QR code')
-      }
-
-      const newQrCode = await response.json()
-      setQrCode(newQrCode)
-      router.refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleUpdateLinks = async (links: Omit<Link, 'id' | 'qrCodeId' | 'createdAt' | 'updatedAt'>[]) => {
     if (!qrCode) return
@@ -213,15 +191,7 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
   if (!qrCode) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 mb-4">You haven&apos;t created a QR code yet.</p>
-        <button
-          onClick={handleCreateQRCode}
-          disabled={loading}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-        >
-          {loading ? 'Creating...' : 'Create QR Code'}
-        </button>
-        {error && <p className="text-red-600 mt-2">{error}</p>}
+        <p className="text-gray-500">Please select a QR code from the tabs above.</p>
       </div>
     )
   }
@@ -308,7 +278,7 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
                   <p className="text-sm font-medium text-gray-700">Destination:</p>
                   <button
                     onClick={() => setEditingDestination(!editingDestination)}
-                    className="text-sm text-indigo-600 hover:text-indigo-500"
+                    className="text-sm text-indigo-600 hover:text-indigo-500 cursor-pointer"
                   >
                     {editingDestination ? 'Cancel' : 'Edit'}
                   </button>
@@ -354,11 +324,18 @@ export default function QRCodeManager({ user, qrCode: initialQrCode }: QRCodeMan
                     </button>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-600">
-                    {qrCode.redirectType === 'url' && qrCode.redirectUrl
-                      ? `Custom URL: ${qrCode.redirectUrl}`
-                      : 'Link Page (shows your links below)'}
-                  </p>
+                  <div className="text-sm text-gray-600">
+                    {qrCode.redirectType === 'url' && qrCode.redirectUrl ? (
+                      <div>
+                        <p className="font-medium mb-1">Custom URL:</p>
+                        <p className="break-all text-indigo-600 bg-gray-50 p-2 rounded border">
+                          {qrCode.redirectUrl}
+                        </p>
+                      </div>
+                    ) : (
+                      <p>Link Page (shows your links below)</p>
+                    )}
+                  </div>
                 )}
               </div>
               

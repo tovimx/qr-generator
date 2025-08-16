@@ -3,6 +3,42 @@ import { prisma } from '@/lib/db/prisma'
 import { generateShortCode } from '@/lib/utils/qr-code'
 import { createClient } from '@/lib/auth/supabase/server'
 
+export async function GET() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get all QR codes for the user (excluding soft deleted)
+    const qrCodes = await prisma.qRCode.findMany({
+      where: { 
+        userId: user.id,
+        deletedAt: null
+      },
+      include: {
+        links: {
+          orderBy: { position: 'asc' }
+        },
+        _count: {
+          select: { scans: true }
+        }
+      },
+      orderBy: { position: 'asc' }
+    })
+
+    return NextResponse.json({ qrCodes })
+  } catch (error) {
+    console.error('Error fetching QR codes:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch QR codes' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -12,23 +48,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { userId } = await request.json()
+    const { title } = await request.json()
 
-    // Check if user already has a QR code
-    const existingQrCode = await prisma.qRCode.findUnique({
-      where: { userId },
-      include: {
-        links: {
-          orderBy: { position: 'asc' }
-        },
-        _count: {
-          select: { scans: true }
-        }
+    // Count existing QR codes (limit to 10 per user)
+    const existingCount = await prisma.qRCode.count({
+      where: { 
+        userId: user.id,
+        deletedAt: null
       }
     })
 
-    if (existingQrCode) {
-      return NextResponse.json(existingQrCode)
+    if (existingCount >= 10) {
+      return NextResponse.json(
+        { error: 'Maximum of 10 QR codes allowed per user' },
+        { status: 400 }
+      )
     }
 
     // Generate unique short code
@@ -51,12 +85,23 @@ export async function POST(request: Request) {
       client = await prisma.client.create({ data: { ownerUserId: user.id } })
     }
 
+    // Get next position
+    const lastQrCode = await prisma.qRCode.findFirst({
+      where: { 
+        userId: user.id,
+        deletedAt: null
+      },
+      orderBy: { position: 'desc' }
+    })
+    const nextPosition = (lastQrCode?.position || 0) + 1
+
     // Create new QR code
     const qrCode = await prisma.qRCode.create({
       data: {
-        userId,
+        userId: user.id,
         shortCode: shortCode!,
-        title: 'My QR Code',
+        title: title || `QR Code ${nextPosition}`,
+        position: nextPosition,
         clientId: client.id,
       },
       include: {
@@ -74,6 +119,45 @@ export async function POST(request: Request) {
     console.error('Error creating QR code:', error)
     return NextResponse.json(
       { error: 'Failed to create QR code' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { qrCodeIds, newPositions } = await request.json()
+
+    // Update positions for multiple QR codes (for reordering)
+    if (qrCodeIds && newPositions) {
+      await prisma.$transaction(
+        qrCodeIds.map((id: string, index: number) =>
+          prisma.qRCode.update({
+            where: { 
+              id,
+              userId: user.id,
+              deletedAt: null
+            },
+            data: { position: newPositions[index] }
+          })
+        )
+      )
+
+      return NextResponse.json({ success: true })
+    }
+
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  } catch (error) {
+    console.error('Error updating QR codes:', error)
+    return NextResponse.json(
+      { error: 'Failed to update QR codes' },
       { status: 500 }
     )
   }

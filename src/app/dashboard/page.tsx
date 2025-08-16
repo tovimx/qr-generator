@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/auth/supabase/server'
 import { prisma } from '@/lib/db/prisma'
-import QRCodeManager from '@/components/dashboard/QRCodeManager'
+import MultiQRCodeManager from '@/components/dashboard/MultiQRCodeManager'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import DomainManager from '@/components/dashboard/DomainManager'
 
@@ -21,7 +21,8 @@ export default async function DashboardPage() {
   let dbUser = await prisma.user.findUnique({
     where: { email: user.email! },
     include: {
-      qrCode: {
+      qrCodes: {
+        where: { deletedAt: null },
         include: {
           links: {
             orderBy: { position: 'asc' }
@@ -29,7 +30,8 @@ export default async function DashboardPage() {
           _count: {
             select: { scans: true }
           }
-        }
+        },
+        orderBy: { position: 'asc' }
       }
     }
   })
@@ -41,7 +43,8 @@ export default async function DashboardPage() {
         email: user.email!,
       },
       include: {
-        qrCode: {
+        qrCodes: {
+          where: { deletedAt: null },
           include: {
             links: {
               orderBy: { position: 'asc' }
@@ -49,7 +52,8 @@ export default async function DashboardPage() {
             _count: {
               select: { scans: true }
             }
-          }
+          },
+          orderBy: { position: 'asc' }
         }
       }
     })
@@ -60,8 +64,8 @@ export default async function DashboardPage() {
       <DashboardHeader userEmail={user.email!} />
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">Your QR Code</h1>
-          <QRCodeManager user={dbUser} qrCode={dbUser.qrCode} />
+          <h1 className="text-2xl font-bold text-gray-900 mb-8">Your QR Codes</h1>
+          <MultiQRCodeManager user={dbUser} qrCodes={dbUser.qrCodes} />
           <DomainManager />
         </div>
       </main>

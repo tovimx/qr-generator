@@ -63,9 +63,9 @@ export default function LogoShapeControl({
               shape.disabled 
                 ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
                 : logoShape === shape.value
-                ? 'border-indigo-500 bg-indigo-50'
-                : 'border-gray-200 bg-white hover:border-gray-300'
-            } disabled:opacity-50`}
+                ? 'border-indigo-500 bg-indigo-50 cursor-pointer'
+                : 'border-gray-200 bg-white hover:border-gray-300 cursor-pointer'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <div className="flex flex-col items-center">
               <span className="text-2xl mb-1">{shape.icon}</span>
