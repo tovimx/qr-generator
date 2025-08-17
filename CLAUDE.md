@@ -42,6 +42,17 @@ This project uses a structured session management system. Every coding session i
 ### Session Entry Template
 Always follow the template structure in SESSIONS.md for consistency.
 
+## Key Architecture Decisions
+
+### Multi-Domain Architecture (IMPORTANT)
+- **Dynamic Domain Resolution**: Uses `resolve-tenant.ts` to check Host headers
+- **NO hardcoded domains**: Domains are managed through UI, not environment variables
+- **Tenant-based**: Each client owns domains, QR codes use selected domain
+- **Environment variables**: `NEXT_PUBLIC_APP_URL` is for development only
+- **Production URLs**: Generated dynamically based on client's domain selection
+
+**⚠️ NEVER modify environment for domain changes - use Domain Manager UI instead**
+
 ## Development Instructions
 
 When implementing features for this project:

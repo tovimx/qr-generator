@@ -4,9 +4,27 @@
 
 This application allows users to create customized and dynamic QR codes that can be edited after creation. QR codes can redirect to Linktree-style pages with multiple links. The system includes detailed analytics, complete visual customization, and an administrative dashboard.
 
-### Key Feature: Multi-Client Support
+### Key Feature: Multi-Domain Support (Phase 1 Complete)
 
-The application supports multiple client integration types:
+**How it works:**
+1. **Domain Management**: Clients add domains via Dashboard → Domain Manager
+2. **DNS Configuration**: Domains point to Vercel (CNAME/A records)  
+3. **QR Generation**: Users select which domain for each QR code
+4. **URL Resolution**: Incoming requests resolve tenant by Host header
+5. **Dynamic URLs**: QR codes encode `https://client-domain.com/shortCode`
+
+**NOT environment-based**: Domains are runtime-configurable, not build-time config.
+
+**Example Flow:**
+- Client adds `links.business.com` in Domain Manager  
+- Sets as primary domain
+- Creates QR code → selects `links.business.com`
+- QR encodes: `https://links.business.com/abc123`
+- Scan resolves to client's content via Host header lookup
+
+### Multi-Client Integration Types
+
+The application supports multiple client integration approaches:
 
 - **Standalone Clients**: Use the app directly at yourapp.com/username
 - **Integrated Clients**: API integration with their existing websites

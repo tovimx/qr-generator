@@ -4,7 +4,14 @@ This is a Next.js application for creating customized and dynamic QR codes with 
 
 ## ✨ Features
 
+## Architecture Notes
+
+**Multi-Domain System**: This is a multi-tenant SaaS where each client can have custom domains. Domains are managed through the web interface, not configuration files.
+
+- ✅ Add domains via Dashboard → Domain Manager
+
 ### ✅ **Implemented**
+
 - **🎯 Multi-QR Dashboard** - Create up to 10 QR codes per user with tab-based interface
 - **🎨 Advanced Customization** - Colors, rounded corners, logos, and real-time preview
 - **🔗 Dynamic Destinations** - Switch between Linktree-style pages or direct URL redirects
