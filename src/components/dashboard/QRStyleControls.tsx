@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getSafeLimits } from '@/lib/utils/qr-validation'
 
 interface QRStyleControlsProps {
@@ -15,6 +15,11 @@ export default function QRStyleControls({
   const [cornerRadius, setCornerRadius] = useState(initialRadius)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Update local state when props change (switching tabs)
+  useEffect(() => {
+    setCornerRadius(initialRadius)
+  }, [initialRadius])
 
   const handleRadiusChange = async (newRadius: number) => {
     setCornerRadius(newRadius)

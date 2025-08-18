@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface QRColorPickerProps {
   fgColor: string
@@ -11,6 +11,11 @@ export default function QRColorPicker({ fgColor, onColorUpdate }: QRColorPickerP
   const [color, setColor] = useState(fgColor)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Update local state when props change (switching tabs)
+  useEffect(() => {
+    setColor(fgColor)
+  }, [fgColor])
 
   // Preset colors
   const presets = [

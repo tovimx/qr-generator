@@ -50,15 +50,30 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
           const data = await res.json()
           const list = (data.domains || []) as { id: string; hostname: string; primary: boolean; verified: boolean }[]
           setDomains(list)
-          const primary = list.find(d => d.primary)
-          if (primary) {
-            setSelectedBaseUrl(`https://${primary.hostname}`)
+          
+          // Only set selectedBaseUrl if it's not already set
+          if (selectedBaseUrl === null) {
+            const primary = list.find(d => d.primary)
+            if (primary) {
+              setSelectedBaseUrl(`https://${primary.hostname}`)
+            }
           }
         }
       } catch {}
     }
     loadDomains()
   }, [])
+  
+  // Reset selectedBaseUrl when switching QR codes
+  useEffect(() => {
+    // Reset to primary domain when switching tabs
+    const primary = domains.find(d => d.primary)
+    if (primary) {
+      setSelectedBaseUrl(`https://${primary.hostname}`)
+    } else {
+      setSelectedBaseUrl(null)
+    }
+  }, [initialQrCode?.id])
 
 
   const handleUpdateLinks = async (links: Omit<Link, 'id' | 'qrCodeId' | 'createdAt' | 'updatedAt'>[]) => {
@@ -199,7 +214,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
   const qrCodeUrl = getQRCodeUrl(qrCode.shortCode, selectedBaseUrl ? { host: selectedBaseUrl } : undefined)
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-qr-id={qrCode.id}>
       <div>
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
@@ -370,6 +385,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
                 logoShape={qrCode.logoShape || 'square'}
                 cornerRadius={qrCode.cornerRadius || 0}
                 fgColor={qrCode.fgColor || '#000000'}
+                qrCodeId={qrCode.id}
               />
               
               <div className="mt-4 text-center">

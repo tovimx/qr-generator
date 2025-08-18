@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { getSafeLimits } from '@/lib/utils/qr-validation'
 
 interface LogoUploaderProps {
@@ -20,6 +20,11 @@ export default function LogoUploader({
   const [logoSize, setLogoSize] = useState(initialLogoSize)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Update local state when props change (switching tabs)
+  useEffect(() => {
+    setLogoSize(initialLogoSize)
+  }, [initialLogoSize])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

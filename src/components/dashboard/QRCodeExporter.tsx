@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 
-// Props are intentionally unused - component exports the QR code rendered by parent
 interface QRCodeExporterProps {
   value?: string
   logoUrl?: string | null
@@ -11,11 +10,10 @@ interface QRCodeExporterProps {
   logoShape?: string
   cornerRadius?: number
   fgColor?: string
+  qrCodeId: string // Add unique identifier
 }
 
-// Props are passed but not used - the component finds and exports the QR element from DOM
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function QRCodeExporter(props: QRCodeExporterProps) {
+export default function QRCodeExporter({ qrCodeId }: QRCodeExporterProps) {
   const [exporting, setExporting] = useState(false)
   const [transparentBg, setTransparentBg] = useState(true)
 
@@ -23,8 +21,8 @@ export default function QRCodeExporter(props: QRCodeExporterProps) {
     setExporting(true)
     
     try {
-      // Find the QR code container
-      const element = document.querySelector('.qr-code-container') as HTMLElement
+      // Find the QR code container for this specific QR code
+      const element = document.querySelector(`[data-qr-id="${qrCodeId}"] .qr-code-container`) as HTMLElement
       
       if (!element) {
         console.error('QR code container not found')
