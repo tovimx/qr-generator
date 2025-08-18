@@ -69,10 +69,16 @@ export default function QRCodeExporter({ qrCodeId }: QRCodeExporterProps) {
           return
         }
         
-        // For SVG, scale using width/height
+        // For SVG, we need to ensure clip paths are preserved
         const dataUrl = await htmlToImage.toSvg(qrElement, {
           width: size,
-          height: size
+          height: size,
+          // Include all styles and definitions
+          includeQueryParams: true,
+          style: {
+            transform: 'none',
+            borderRadius: '0' // Let SVG clip-path handle rounding
+          }
         })
         
         // Convert data URL to blob for better compatibility
