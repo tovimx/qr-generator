@@ -714,3 +714,95 @@ model QRCode {
 - Comprehensive validation library created
 
 ---
+
+## Session: 2025-08-17 - State Synchronization Fixes & Domain Configuration
+
+**Previous context**: Multi-QR dashboard working, customization features complete
+
+**Today's goal**: 
+- [x] Fix state synchronization issues between QR code tabs
+- [x] Configure custom domain (links.enigma47.mx) for QR generator
+- [x] Troubleshoot DNS and Vercel domain configuration
+- [x] Document multi-domain architecture clearly
+
+**Implementation notes**:
+- Identified root cause of state persistence across tabs:
+  - Components had local state initialized from props but not syncing on prop changes
+  - QRColorPicker, QRStyleControls, LogoUploader all affected
+  - Domain selector persisted selection across different QR codes
+  - QRCodeExporter used generic DOM queries instead of unique identifiers
+
+**State Synchronization Fixes**:
+- Added `useEffect` hooks to sync local state when props change
+- Fixed components:
+  - QRColorPicker: Syncs color state with fgColor prop
+  - QRStyleControls: Syncs cornerRadius with prop changes
+  - LogoUploader: Updates logoSize when switching tabs
+  - QRCodeManager: Resets domain selector to primary on tab switch
+  - QRCodeExporter: Now uses unique QR ID for DOM targeting
+
+**Domain Configuration Work**:
+- Attempted to configure links.enigma47.mx for QR generator
+- Discovered domain needs to be added to specific Vercel project
+- Configured DNS records in Vercel's DNS management
+- Documented that domains are managed at runtime, not build-time
+
+**Documentation Updates**:
+- Enhanced CLAUDE.md with clearer multi-domain architecture notes
+- Added explicit warnings about not modifying environment variables for domains
+- Updated PLAN.md with better multi-domain flow examples
+
+**Blockers/Issues**:
+- Initial confusion about multi-domain architecture (runtime vs build-time)
+- DNS propagation delays for .mx domains
+- Vercel project domain assignment complexities
+
+**Completed**:
+- [x] Fixed color picker state sharing between tabs
+- [x] Fixed domain selector state persistence
+- [x] Fixed style controls synchronization
+- [x] Fixed logo uploader state management
+- [x] Added unique QR ID to exporter for proper targeting
+- [x] Updated documentation for clarity
+
+**Next session focus** (PRIORITY ORDER):
+1. **TanStack Query Refactor** (HIGH PRIORITY - Phase 13):
+   - Replace all manual router.refresh() calls
+   - Implement automatic cache invalidation
+   - Add optimistic updates for better UX
+   - Eliminate remaining state synchronization bugs
+   - Create proper server state management
+   - Benefits: Single source of truth, no prop drilling, automatic refetching
+
+2. **Analytics Dashboard Enhancement** (from previous session):
+   - Detailed scan analytics with charts
+   - Geographic heat maps
+   - Device and browser breakdowns
+   - Time-based trends
+   - Export analytics reports
+
+3. **Multi-Client Support** (Phase 9):
+   - API development for integrated clients
+   - Client type architecture (standalone/integrated/hybrid)
+   - Authentication and API key management
+   - Webhook system for real-time updates
+
+**Key decisions**:
+- Decided to apply quick fixes now, defer TanStack Query to dedicated session
+- TanStack Query requires ~15-20 component modifications (2-4 hour effort)
+- Current fixes provide immediate relief while larger refactor is planned
+
+**Commands used**:
+- `git add -A && git commit -m "Fix QR tab state synchronization issues"`
+- `git push origin main`
+- `vercel list` - Check deployment status
+- `dig/nslookup` - DNS troubleshooting
+
+**Files Modified**:
+- src/components/dashboard/QRColorPicker.tsx
+- src/components/dashboard/QRStyleControls.tsx
+- src/components/dashboard/LogoUploader.tsx
+- src/components/dashboard/QRCodeManager.tsx
+- src/components/dashboard/QRCodeExporter.tsx
+
+---
