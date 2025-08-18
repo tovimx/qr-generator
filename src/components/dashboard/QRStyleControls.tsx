@@ -5,7 +5,7 @@ import { getSafeLimits } from '@/lib/utils/qr-validation'
 
 interface QRStyleControlsProps {
   cornerRadius: number
-  onStyleUpdate: (cornerRadius: number) => void
+  onStyleUpdate: (cornerRadius: number) => Promise<void>
 }
 
 export default function QRStyleControls({ 
@@ -30,6 +30,8 @@ export default function QRStyleControls({
       await onStyleUpdate(newRadius)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update style')
+      // Revert to previous value on error
+      setCornerRadius(initialRadius)
     } finally {
       setLoading(false)
     }

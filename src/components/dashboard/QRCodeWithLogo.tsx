@@ -1,7 +1,7 @@
 'use client'
 
 import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 
 interface QRCodeWithLogoProps {
   value: string
@@ -31,47 +31,62 @@ export default function QRCodeWithLogo({
   const borderRadiusPercent = cornerRadius * 5 // 0% to 50%
   const borderRadiusPx = (size * borderRadiusPercent) / 100
   
-  // Create a unique ID for the clip path
-  const clipPathId = `qr-clip-${Math.random().toString(36).substr(2, 9)}`
+  // Create a stable ID for the clip path that doesn't change on every render
+  const clipPathId = useMemo(() => `qr-clip-${Math.random().toString(36).substr(2, 9)}`, [])
   
   useEffect(() => {
-    // Apply clip path to the SVG after it renders
-    if (cornerRadius > 0 && containerRef.current) {
-      const svg = containerRef.current.querySelector('svg')
-      if (svg) {
-        // Create or update the clipPath
-        let defs = svg.querySelector('defs')
-        if (!defs) {
-          defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-          svg.insertBefore(defs, svg.firstChild)
+    if (!containerRef.current) return
+    
+    const svg = containerRef.current.querySelector('svg')
+    if (!svg) return
+    
+    // If cornerRadius is 0, remove any clip path
+    if (cornerRadius === 0) {
+      svg.removeAttribute('clip-path')
+      svg.style.clipPath = ''
+      
+      // Clean up any existing clip path definitions
+      const defs = svg.querySelector('defs')
+      if (defs) {
+        const existingClipPath = defs.querySelector(`#${clipPathId}`)
+        if (existingClipPath) {
+          existingClipPath.remove()
         }
-        
-        // Remove old clip path if exists
-        const oldClipPath = defs.querySelector(`#${clipPathId}`)
-        if (oldClipPath) {
-          oldClipPath.remove()
-        }
-        
-        // Create new clip path with rounded rect
-        const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-        clipPath.setAttribute('id', clipPathId)
-        
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-        rect.setAttribute('x', '0')
-        rect.setAttribute('y', '0')
-        rect.setAttribute('width', size.toString())
-        rect.setAttribute('height', size.toString())
-        rect.setAttribute('rx', borderRadiusPx.toString())
-        rect.setAttribute('ry', borderRadiusPx.toString())
-        
-        clipPath.appendChild(rect)
-        defs.appendChild(clipPath)
-        
-        // Apply the clip path to the SVG
-        svg.setAttribute('clip-path', `url(#${clipPathId})`)
-        svg.style.clipPath = `url(#${clipPathId})`
       }
+      return
     }
+    
+    // Apply clip path for rounded corners
+    let defs = svg.querySelector('defs')
+    if (!defs) {
+      defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+      svg.insertBefore(defs, svg.firstChild)
+    }
+    
+    // Remove old clip path if exists
+    const oldClipPath = defs.querySelector(`#${clipPathId}`)
+    if (oldClipPath) {
+      oldClipPath.remove()
+    }
+    
+    // Create new clip path with rounded rect
+    const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+    clipPath.setAttribute('id', clipPathId)
+    
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+    rect.setAttribute('x', '0')
+    rect.setAttribute('y', '0')
+    rect.setAttribute('width', size.toString())
+    rect.setAttribute('height', size.toString())
+    rect.setAttribute('rx', borderRadiusPx.toString())
+    rect.setAttribute('ry', borderRadiusPx.toString())
+    
+    clipPath.appendChild(rect)
+    defs.appendChild(clipPath)
+    
+    // Apply the clip path to the SVG
+    svg.setAttribute('clip-path', `url(#${clipPathId})`)
+    svg.style.clipPath = `url(#${clipPathId})`
   }, [cornerRadius, borderRadiusPx, size, clipPathId])
 
   return (
