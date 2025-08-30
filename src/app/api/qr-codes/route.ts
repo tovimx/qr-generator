@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { generateShortCode } from '@/lib/utils/qr-code'
 import { createClient } from '@/lib/auth/supabase/server'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -12,15 +12,29 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get project filter from query parameters
+    const url = new URL(request.url)
+    const projectId = url.searchParams.get('projectId')
+
+    const whereClause = {
+      userId: user.id,
+      deletedAt: null,
+      ...(projectId && { projectId })
+    }
+
     // Get all QR codes for the user (excluding soft deleted)
     const qrCodes = await prisma.qRCode.findMany({
-      where: { 
-        userId: user.id,
-        deletedAt: null
-      },
+      where: whereClause,
       include: {
         links: {
           orderBy: { position: 'asc' }
+        },
+        project: {
+          select: {
+            id: true,
+            name: true,
+            isDefault: true
+          }
         },
         _count: {
           select: { scans: true }
@@ -48,19 +62,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title } = await request.json()
+    const { title, projectId } = await request.json()
 
-    // Count existing QR codes (limit to 10 per user)
-    const existingCount = await prisma.qRCode.count({
-      where: { 
-        userId: user.id,
-        deletedAt: null
+    // Validate projectId if provided
+    let validatedProjectId = null
+    if (projectId) {
+      const project = await prisma.project.findFirst({
+        where: {
+          id: projectId,
+          client: {
+            ownerUserId: user.id
+          }
+        }
+      })
+
+      if (!project) {
+        return NextResponse.json(
+          { error: 'Invalid project ID' },
+          { status: 400 }
+        )
       }
+      validatedProjectId = projectId
+    }
+
+    // Count existing QR codes for this project (limit to 10 per project)
+    const whereClause = projectId ? 
+      { userId: user.id, projectId, deletedAt: null } : 
+      { userId: user.id, projectId: null, deletedAt: null }
+
+    const existingCount = await prisma.qRCode.count({
+      where: whereClause
     })
 
     if (existingCount >= 10) {
       return NextResponse.json(
-        { error: 'Maximum of 10 QR codes allowed per user' },
+        { error: 'Maximum of 10 QR codes allowed per project' },
         { status: 400 }
       )
     }
@@ -85,12 +121,9 @@ export async function POST(request: Request) {
       client = await prisma.client.create({ data: { ownerUserId: user.id } })
     }
 
-    // Get next position
+    // Get next position within the project scope
     const lastQrCode = await prisma.qRCode.findFirst({
-      where: { 
-        userId: user.id,
-        deletedAt: null
-      },
+      where: whereClause,
       orderBy: { position: 'desc' }
     })
     const nextPosition = (lastQrCode?.position || 0) + 1
@@ -103,10 +136,18 @@ export async function POST(request: Request) {
         title: title || `QR Code ${nextPosition}`,
         position: nextPosition,
         clientId: client.id,
+        projectId: validatedProjectId,
       },
       include: {
         links: {
           orderBy: { position: 'asc' }
+        },
+        project: {
+          select: {
+            id: true,
+            name: true,
+            isDefault: true
+          }
         },
         _count: {
           select: { scans: true }

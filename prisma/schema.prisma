@@ -22,12 +22,13 @@ model User {
 }
 
 model Client {
-  id           String   @id @default(uuid())
-  ownerUserId  String   @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           String    @id @default(uuid())
+  ownerUserId  String    @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   qrCodes      QRCode[]
   domains      Domain[]
+  projects     Project[]
 
   @@map("clients")
 }
@@ -46,6 +47,20 @@ model Domain {
 
   @@index([clientId])
   @@map("domains")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  clientId  String
+  name      String   @default("Default Project")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  qrCodes   QRCode[]
+
+  @@index([clientId])
+  @@map("projects")
 }
 
 model QRCode {
@@ -73,9 +88,14 @@ model QRCode {
   client       Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
   domainId     String?
   domain       Domain?   @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  // Project support
+  projectId    String?
+  project      Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([userId, deletedAt])
   @@index([userId, position])
+  @@index([projectId, deletedAt])
+  @@index([projectId, position])
   @@map("qr_codes")
 }
 

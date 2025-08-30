@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/auth/supabase/server'
 import { prisma } from '@/lib/db/prisma'
-import MultiQRCodeManager from '@/components/dashboard/MultiQRCodeManager'
-import DashboardHeader from '@/components/dashboard/DashboardHeader'
-import DomainManager from '@/components/dashboard/DomainManager'
+import SimpleProjectDashboard from '@/components/project/SimpleProjectDashboard'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -19,21 +17,7 @@ export default async function DashboardPage() {
 
   // Get or create user in database
   let dbUser = await prisma.user.findUnique({
-    where: { email: user.email! },
-    include: {
-      qrCodes: {
-        where: { deletedAt: null },
-        include: {
-          links: {
-            orderBy: { position: 'asc' }
-          },
-          _count: {
-            select: { scans: true }
-          }
-        },
-        orderBy: { position: 'asc' }
-      }
-    }
+    where: { email: user.email! }
   })
 
   if (!dbUser) {
@@ -41,34 +25,112 @@ export default async function DashboardPage() {
       data: {
         id: user.id,
         email: user.email!,
-      },
-      include: {
-        qrCodes: {
-          where: { deletedAt: null },
-          include: {
-            links: {
-              orderBy: { position: 'asc' }
-            },
-            _count: {
-              select: { scans: true }
-            }
-          },
-          orderBy: { position: 'asc' }
-        }
       }
     })
   }
 
+  // Get or create client for this user
+  let client = await prisma.client.findUnique({
+    where: { ownerUserId: user.id }
+  })
+
+  if (!client) {
+    client = await prisma.client.create({
+      data: { ownerUserId: user.id }
+    })
+  }
+
+  // Get projects with stats
+  const projects = await prisma.project.findMany({
+    where: { clientId: client.id },
+    include: {
+      _count: {
+        select: { qrCodes: { where: { deletedAt: null } } }
+      }
+    },
+    orderBy: [
+      { isDefault: 'desc' },
+      { createdAt: 'asc' }
+    ]
+  })
+
+  // Ensure default project exists
+  if (projects.length === 0) {
+    const defaultProject = await prisma.project.create({
+      data: {
+        clientId: client.id,
+        name: 'Default Project',
+        isDefault: true
+      },
+      include: {
+        _count: {
+          select: { qrCodes: { where: { deletedAt: null } } }
+        }
+      }
+    })
+    projects.push(defaultProject)
+  }
+
+  // Transform projects with stats
+  const projectsWithStats = await Promise.all(
+    projects.map(async (project) => {
+      const qrCodes = await prisma.qRCode.findMany({
+        where: {
+          projectId: project.id,
+          deletedAt: null
+        },
+        include: {
+          _count: {
+            select: { scans: true }
+          }
+        }
+      })
+
+      const totalScans = qrCodes.reduce((sum, qr) => sum + qr._count.scans, 0)
+      const activeQRs = qrCodes.filter(qr => qr.isActive).length
+
+      return {
+        ...project,
+        qrCodeCount: qrCodes.length,
+        activeQRCount: activeQRs,
+        totalScans,
+        lastActivity: qrCodes.length > 0 ? 
+          Math.max(...qrCodes.map(qr => new Date(qr.updatedAt).getTime())) : 
+          new Date(project.updatedAt).getTime()
+      }
+    })
+  )
+
+  // Get initial QR codes for default project
+  const defaultProject = projectsWithStats.find(p => p.isDefault) || projectsWithStats[0]
+  const initialQRCodes = defaultProject ? await prisma.qRCode.findMany({
+    where: {
+      projectId: defaultProject.id,
+      deletedAt: null
+    },
+    include: {
+      links: {
+        orderBy: { position: 'asc' }
+      },
+      project: {
+        select: {
+          id: true,
+          name: true,
+          isDefault: true
+        }
+      },
+      _count: {
+        select: { scans: true }
+      }
+    },
+    orderBy: { position: 'asc' }
+  }) : []
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader userEmail={user.email!} />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">Your QR Codes</h1>
-          <MultiQRCodeManager user={dbUser} qrCodes={dbUser.qrCodes} />
-          <DomainManager />
-        </div>
-      </main>
-    </div>
+    <SimpleProjectDashboard 
+      user={dbUser}
+      initialProjects={projectsWithStats}
+      initialQRCodes={initialQRCodes}
+    />
   )
 }

@@ -24,3 +24,28 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Global button cursor fix */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Global input styles for better contrast */
+input, textarea, select {
+  color: #1f2937 !important; /* Gray-800 for dark text */
+}
+
+/* Ensure placeholders are visible but lighter */
+input::placeholder, textarea::placeholder {
+  color: #6b7280 !important; /* Gray-500 */
+}
+
+/* Focus states for better accessibility */
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid #4f46e5 !important; /* Indigo-600 */
+  outline-offset: 2px;
+}
