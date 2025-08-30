@@ -8,12 +8,12 @@ const TEST_USER = {
   name: 'Test User'
 };
 
-// Helper function to fill and submit signup form
-async function fillSignupForm(page: Page, user = TEST_USER) {
-  await page.getByPlaceholder('Email address').fill(user.email);
-  await page.getByPlaceholder('Password').fill(user.password);
-  await page.getByRole('button', { name: 'Sign up' }).click();
-}
+// Helper function to fill and submit signup form (unused but kept for future tests)
+// async function fillSignupForm(page: Page, user = TEST_USER) {
+//   await page.getByPlaceholder('Email address').fill(user.email);
+//   await page.getByPlaceholder('Password').fill(user.password);
+//   await page.getByRole('button', { name: 'Sign up' }).click();
+// }
 
 // Helper function to fill and submit login form
 async function fillLoginForm(page: Page, user = TEST_USER) {

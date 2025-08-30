@@ -922,7 +922,14 @@ model QRCode {
 - [x] Updated documentation for clarity
 
 **Next session focus** (PRIORITY ORDER):
-1. **Type Safety Improvements** (HIGH PRIORITY - Follow-up to TanStack Query):
+1. **🔥 URGENT: Debug Project Creation Bug**:
+   - Investigate why new project creation is not working properly
+   - Test project creation flow end-to-end
+   - Check API endpoint functionality and error handling
+   - Verify TanStack Query mutations for project operations
+   - Ensure UI properly reflects project creation status
+
+2. **Type Safety Improvements** (HIGH PRIORITY - Follow-up to TanStack Query):
    - Resolve remaining TypeScript compilation warnings
    - Implement proper type guards for runtime validation
    - Eliminate @ts-expect-error workarounds
@@ -959,5 +966,72 @@ model QRCode {
 - src/components/dashboard/LogoUploader.tsx
 - src/components/dashboard/QRCodeManager.tsx
 - src/components/dashboard/QRCodeExporter.tsx
+
+---
+
+## Session: 2025-08-30 18:00 - Enforce Required Project Association
+
+**Previous context**: QR codes could exist without projects, causing orphaned data and complex business logic
+
+**Today's goal**: 
+- [x] Make projectId required in QRCode model
+- [x] Create database migration to enforce project constraint  
+- [x] Update API validation and TypeScript types
+- [x] Remove obsolete backfill scripts and null checks
+- [x] Deploy migration safely to production
+
+**Implementation notes**:
+- Successfully migrated from optional to required project association
+- Database migration `20250830174036_make_project_id_required` applied
+- Updated Prisma schema: `projectId: String` (not nullable), `onDelete: Restrict`
+- Fixed TypeScript interfaces to eliminate null checking overhead
+- Deleted obsolete `scripts/backfill-projects.ts` (already applied in production)
+- All quality checks passed: build ✅, lint ✅, TypeScript ✅
+
+**Completed**:
+- [x] Created migration making projectId required in QRCode model
+- [x] Updated Prisma schema to enforce project association  
+- [x] Modified API validation to require projectId on QR creation
+- [x] Fixed TypeScript interfaces (QRCodeData, QRCodeInput, QRCodeCreateRequest)
+- [x] Updated TanStack Query optimistic updates to include required project
+- [x] Removed null checks from API and UI code
+- [x] Cleaned up obsolete backfill script
+- [x] Successfully committed and pushed changes (9cd8e4b)
+
+**Next session focus** (PRIORITY ORDER):
+1. **🔥 URGENT: Debug Project Creation Bug**:
+   - Investigate why new project creation is not working properly
+   - Test project creation flow end-to-end  
+   - Check API endpoint functionality and error handling
+   - Verify TanStack Query mutations for project operations
+   - Ensure UI properly reflects project creation status
+
+2. **Type Safety Improvements** (HIGH PRIORITY):
+   - Resolve remaining TypeScript compilation warnings
+   - Implement proper type guards for runtime validation
+   - Eliminate any remaining @ts-expect-error workarounds
+   - Ensure full compliance with TypeScript 2025 best practices
+
+**Key decisions**:
+- Made projectId required instead of nullable for better data integrity
+- Changed cascade behavior to `Restrict` to prevent accidental project deletion
+- Eliminated all null checking logic since every QR code now has a project
+- Production migration safe since backfill already ran successfully
+
+**Commands used**:
+- `npx prisma migrate dev --name make_project_id_required`
+- `npm run build` - Verified successful compilation
+- `npx tsc --noEmit` - Confirmed no TypeScript errors
+- `git add . && git commit && git push` - Deployed changes
+
+**Files Modified**:
+- prisma/schema.prisma - Made projectId required, changed cascade behavior
+- prisma/migrations/20250830174036_make_project_id_required/ - New migration
+- src/app/api/qr-codes/route.ts - Added projectId validation, removed null checks
+- src/types/qr-code.ts - Made project required in interfaces
+- src/types/api.ts - Made projectId required in QRCodeCreateRequest
+- src/hooks/use-qr-codes.ts - Fixed optimistic updates for required project
+- src/components/dashboard/MultiQRCodeManager.tsx - Updated to use QRCodeData consistently
+- scripts/backfill-projects.ts - DELETED (obsolete)
 
 ---

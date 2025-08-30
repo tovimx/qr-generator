@@ -140,7 +140,7 @@ test.describe('Login Page', () => {
 });
 
 test.describe('Login Integration Tests', () => {
-  test('should redirect to dashboard on successful login', async ({ page }) => {
+  test('should redirect to dashboard on successful login', async ({ }) => {
     // Note: This test would require valid test credentials or mocked authentication
     // For now, we'll skip it unless we have a test user setup
     test.skip(true, 'Requires valid test credentials or auth mocking');

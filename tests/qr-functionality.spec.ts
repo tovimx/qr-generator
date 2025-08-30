@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('QR Code Functionality', () => {
-  test.skip('should test QR code generation - requires authenticated user', async ({ page }) => {
+  test.skip('should test QR code generation - requires authenticated user', async ({ }) => {
     // Note: This test is skipped because it requires authentication
     // To enable this test, you would need to:
     // 1. Create test user credentials
@@ -64,7 +64,7 @@ test.describe('QR Code Functionality', () => {
 });
 
 test.describe('Analytics Functionality', () => {
-  test('should track QR code scans', async ({ page }) => {
+  test('should track QR code scans', async ({ }) => {
     // This test would verify that analytics are properly tracked
     // when QR codes are scanned
     

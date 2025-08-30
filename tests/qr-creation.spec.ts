@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { authenticatePage, generateTestEmail } from './helpers/supabase-auth';
-import { TEST_QR_CODES, TEST_URLS } from './fixtures/test-data';
+import { generateTestEmail } from './helpers/supabase-auth';
+import { TEST_QR_CODES } from './fixtures/test-data';
 
 test.describe('QR Code Creation', () => {
   let testEmail: string;

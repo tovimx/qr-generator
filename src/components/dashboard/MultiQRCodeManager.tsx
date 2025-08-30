@@ -33,7 +33,7 @@ export default function MultiQRCodeManager({ user, qrCodes }: MultiQRCodeManager
       // If no QR code is selected but we have QR codes, select the first one
       setSelectedQRCode(qrCodes[0])
     }
-  }, [qrCodes])
+  }, [qrCodes, selectedQRCode])
 
   const handleQRCodeSelect = (qrCode: QRCodeData) => {
     setSelectedQRCode(qrCode)

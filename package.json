@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "checkerrors": "npx tsc --noEmit && npx eslint src/ tests/ --ext .ts,.tsx",
     "postinstall": "prisma generate",
     "db:start": "brew services start postgresql@16",
     "db:stop": "brew services stop postgresql@16",
@@ -39,7 +40,8 @@
     "qrcode.react": "^4.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-qr-code": "^2.0.18"
+    "react-qr-code": "^2.0.18",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
