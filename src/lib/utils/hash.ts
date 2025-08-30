@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { ENV } from '@/lib/env';
 
 export function hashIP(ip: string): string {
-  return crypto.createHash('sha256').update(ip + ENV.SUPABASE_SERVICE_ROLE_KEY()).digest('hex');
+  const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+  return crypto.createHash('sha256').update(ip + serviceRoleKey).digest('hex');
 }
