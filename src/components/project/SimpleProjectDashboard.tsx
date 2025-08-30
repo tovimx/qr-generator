@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { User } from '@prisma/client'
-import { Plus, Search, Grid3X3, List, QrCode, Eye, TrendingUp, MoreHorizontal, Edit3, ExternalLink, Trash2, Edit, Settings } from 'lucide-react'
+import { Plus, Search, Grid3X3, List, QrCode, Eye, TrendingUp, MoreHorizontal, ExternalLink, Trash2, Edit, Settings } from 'lucide-react'
 import ProjectSelector from './ProjectSelector'
 import QRCodeManager from '../dashboard/QRCodeManager'
 import DomainManager from '../dashboard/DomainManager'
@@ -760,7 +760,7 @@ export default function SimpleProjectDashboard({
                 autoFocus
               />
               <p className="text-xs text-gray-500 mt-1">
-                Leave empty to use default name: "QR Code {qrCodes.length + 1}"
+                Leave empty to use default name: &quot;QR Code {qrCodes.length + 1}&quot;
               </p>
             </div>
             
