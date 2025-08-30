@@ -2,8 +2,12 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Production-safe environment variable access
+  const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']
+  const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']
+
   // Check if environment variables are set
-  if (!process.env['NEXT_PUBLIC_SUPABASE_URL'] || !process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     // Allow access to setup page
     if (request.nextUrl.pathname === '/setup') {
       return NextResponse.next()
@@ -19,8 +23,8 @@ export async function middleware(request: NextRequest) {
   })
 
   const supabase = createServerClient(
-    process.env['NEXT_PUBLIC_SUPABASE_URL']!,
-    process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
