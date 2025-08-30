@@ -36,14 +36,15 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     (initialQrCode?.redirectType as 'links' | 'url') || 'links'
   )
   const [redirectUrl, setRedirectUrl] = useState(initialQrCode?.redirectUrl || '')
-  // Use preferred domain from database or fallback to primary domain
+  
+  // Simple domain selection: null = localhost, domain-id = custom domain
   const getSelectedDomain = () => {
     if (qrCode?.preferredDomain) {
+      // User chose a custom domain
       return `https://${qrCode.preferredDomain.hostname}`
     }
-    // Fallback to primary domain
-    const primary = domains.find(d => d.primary)
-    return primary ? `https://${primary.hostname}` : getAppBaseUrl()
+    // null means localhost (either never set or explicitly chosen)
+    return getAppBaseUrl()
   }
   
   const loading = updateDestinationMutation.isPending || updateLinksMutation.isPending || updateLogoMutation.isPending || updateStyleMutation.isPending
@@ -62,11 +63,19 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     
     let preferredDomainId: string | null = null
     
-    // Parse domain value to get domain ID (if not app base URL)
-    if (domainValue !== getAppBaseUrl()) {
+    // Parse domain value to get domain ID
+    if (domainValue === getAppBaseUrl()) {
+      // User explicitly chose localhost - we'll use null to represent this
+      // but the fact that we're calling this function means it was a choice
+      preferredDomainId = null
+    } else {
+      // User chose a custom domain
       const domain = domains.find(d => `https://${d.hostname}` === domainValue)
       if (domain) {
         preferredDomainId = domain.id
+      } else {
+        console.warn('Domain not found:', domainValue)
+        return // Don't save if domain not found
       }
     }
     
