@@ -777,23 +777,68 @@ model QRCode {
 - [x] Optimistic updates implemented for better UX
 
 **Next session focus**:
-1. **Type Safety Improvements** (HIGH PRIORITY - Follow-up to TanStack Query):
+1. **User Experience: Toast Notifications** (HIGH PRIORITY - Critical UX Gap):
+   - Install and configure react-hot-toast for user feedback
+   - Replace silent console.error/warn with user-visible toast messages
+   - Implement success/error toasts for all user actions
+   - Priority error locations identified (see below for full list)
+
+2. **Type Safety Improvements** (Follow-up to TanStack Query):
    - Resolve remaining TypeScript compilation warnings
    - Implement proper type guards for runtime validation
    - Eliminate @ts-expect-error workarounds
    - Ensure full compliance with TypeScript 2025 best practices
    - Add proper error boundaries with typed error handling
 
-2. **User Testing & Validation**:
+3. **User Testing & Validation**:
    - Test all CRUD operations with new TanStack Query implementation
    - Verify optimistic updates work correctly
    - Ensure cache invalidation works across all operations
    - Test error handling and rollback scenarios
 
-3. **Performance Analysis**:
+4. **Performance Analysis**:
    - Monitor cache hit rates and query performance
    - Optimize stale times and cache times based on usage patterns
    - Add background refetching where appropriate
+
+### **🍞 Toast Implementation Priority Locations**
+
+**CRITICAL (Silent failures affecting user actions):**
+- `QRCodeManager.tsx:77` - Domain not found warning (no user feedback)
+- `QRCodeManager.tsx:89` - Failed to update preferred domain
+- `QRCodeTabs.tsx:46` - Failed to create QR code  
+- `QRCodeTabs.tsx:67` - Failed to delete QR code
+- `SimpleProjectDashboard.tsx:91` - Error creating project
+- `DomainManager.tsx:50` - Domain creation/management errors
+
+**HIGH (User action failures):**
+- `QRCodeManager.tsx:105` - Failed to update links
+- `QRCodeManager.tsx:124` - Failed to update destination  
+- `QRCodeManager.tsx:141` - Failed to update logo
+- `QRCodeManager.tsx:158` - Failed to update style
+- `QRCodeTabs.tsx:87` - Failed to update QR code title
+- `LogoUploader.tsx:57,73` - Logo upload failures
+- `QRStyleControls.tsx:31` - Style update failures
+
+**MEDIUM (Export/utility functions):**
+- `QRCodeExporter.tsx:28,39,68,98` - Export operation failures
+- `QRColorPicker.tsx:39` - Color selection errors
+
+**SUCCESS MESSAGES NEEDED:**
+- Domain preference saved
+- QR code created successfully  
+- Project created successfully
+- QR code deleted
+- Settings updated
+- Logo uploaded
+- Export completed
+
+**📋 Implementation Plan:**
+1. Install react-hot-toast: `npm install react-hot-toast`
+2. Add Toaster component to root layout
+3. Create toast utility wrapper with branded styling
+4. Replace console.error/warn in priority order (Critical → High → Medium)
+5. Add success feedback for positive user actions
 
 **Key Technical Achievements**:
 - **State Management Modernization**: From manual router.refresh() to automatic cache synchronization

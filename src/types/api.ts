@@ -42,7 +42,7 @@ export interface DomainListResponse {
 // Request types for API endpoints
 export interface QRCodeCreateRequest extends QRCodeInput {
   title?: string
-  projectId?: string
+  projectId: string // REQUIRED - every QR code must belong to a project
 }
 
 export type QRCodeUpdateRequest = QRCodeUpdateInput

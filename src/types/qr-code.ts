@@ -2,11 +2,12 @@ import { QRCode, Link, Project } from '@prisma/client'
 
 // Unified QR Code type that extends Prisma model with relations
 export interface QRCodeData extends QRCode {
+  // Add relations (these don't conflict with base model)
   links: Link[]
   _count: {
     scans: number
   }
-  project?: Project | null
+  project: Project // Now REQUIRED - every QR code belongs to a project
   preferredDomain?: {
     id: string
     hostname: string
@@ -17,7 +18,9 @@ export interface QRCodeData extends QRCode {
 
 // For components that need the relations interface
 export interface QRCodeWithRelations extends QRCode {
+  // Add relations
   links: Link[]
+  project: Project // Now REQUIRED - every QR code belongs to a project
   _count: {
     scans: number
   }
@@ -45,7 +48,7 @@ export interface LinkInput {
 // QR Code creation/update types
 export interface QRCodeInput {
   title?: string
-  projectId?: string
+  projectId: string // REQUIRED - every QR code must belong to a project
   redirectType?: string
   redirectUrl?: string
   logoSize?: number

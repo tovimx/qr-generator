@@ -1,24 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, QRCode, Link } from '@prisma/client'
+import { User } from '@prisma/client'
 import QRCodeTabs from './QRCodeTabs'
 import QRCodeManager from './QRCodeManager'
-
-interface QRCodeWithRelations extends QRCode {
-  links: Link[]
-  _count: {
-    scans: number
-  }
-}
+import { QRCodeData } from '@/types/qr-code'
 
 interface MultiQRCodeManagerProps {
   user: User
-  qrCodes: QRCodeWithRelations[]
+  qrCodes: QRCodeData[]
 }
 
 export default function MultiQRCodeManager({ user, qrCodes }: MultiQRCodeManagerProps) {
-  const [selectedQRCode, setSelectedQRCode] = useState<QRCodeWithRelations | null>(
+  const [selectedQRCode, setSelectedQRCode] = useState<QRCodeData | null>(
     qrCodes.length > 0 ? qrCodes[0] : null
   )
 
@@ -41,7 +35,7 @@ export default function MultiQRCodeManager({ user, qrCodes }: MultiQRCodeManager
     }
   }, [qrCodes])
 
-  const handleQRCodeSelect = (qrCode: QRCodeWithRelations) => {
+  const handleQRCodeSelect = (qrCode: QRCodeData) => {
     setSelectedQRCode(qrCode)
   }
 

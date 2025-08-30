@@ -72,31 +72,33 @@ export async function POST(request: Request) {
 
     const { title, projectId } = await request.json()
 
-    // Validate projectId if provided
-    let validatedProjectId = null
-    if (projectId) {
-      const project = await prisma.project.findFirst({
-        where: {
-          id: projectId,
-          client: {
-            ownerUserId: user.id
-          }
-        }
-      })
+    // projectId is now REQUIRED
+    if (!projectId) {
+      return NextResponse.json(
+        { error: 'Project ID is required' },
+        { status: 400 }
+      )
+    }
 
-      if (!project) {
-        return NextResponse.json(
-          { error: 'Invalid project ID' },
-          { status: 400 }
-        )
+    // Validate projectId
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        client: {
+          ownerUserId: user.id
+        }
       }
-      validatedProjectId = projectId
+    })
+
+    if (!project) {
+      return NextResponse.json(
+        { error: 'Invalid project ID' },
+        { status: 400 }
+      )
     }
 
     // Count existing QR codes for this project (limit to 10 per project)
-    const whereClause = projectId ? 
-      { userId: user.id, projectId, deletedAt: null } : 
-      { userId: user.id, projectId: null, deletedAt: null }
+    const whereClause = { userId: user.id, projectId, deletedAt: null }
 
     const existingCount = await prisma.qRCode.count({
       where: whereClause
@@ -144,7 +146,7 @@ export async function POST(request: Request) {
         title: title || `QR Code ${nextPosition}`,
         position: nextPosition,
         clientId: client.id,
-        projectId: validatedProjectId,
+        projectId: projectId,
       },
       include: {
         links: {

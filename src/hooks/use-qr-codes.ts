@@ -103,6 +103,14 @@ export const useCreateQRCode = () => {
           },
           preferredDomainId: null,
           preferredDomain: null,
+          project: {
+            id: projectId,
+            name: 'Loading...',
+            isDefault: false,
+            clientId: '',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
         }
 
         queryClient.setQueryData<QRCodeData[]>(
