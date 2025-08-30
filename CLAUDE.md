@@ -74,11 +74,273 @@ Always follow the template structure in SESSIONS.md for consistency.
 
 ## MANDATORY COMMUNICATION PROTOCOLS
 
+### **🚨 ARCHITECTURAL CHANGE DETECTION (CRITICAL)**
+
+**BEFORE making ANY changes to these file types, STOP and run impact analysis:**
+
+- Files with `'use client'` directives
+- Provider components (`*Provider.tsx`)  
+- Root layout (`layout.tsx`)
+- Environment utilities (`env.ts`, `**/env/*`)
+- Core libraries (`lib/**/*.ts`)
+- Authentication setup (`auth/**/*`)
+
+**MANDATORY PROTOCOL:**
+```bash
+# 1. Run impact analysis first
+npm run impact-analysis <target-file> <change-type>
+
+# 2. If HIGH RISK detected, ask user permission before proceeding
+# 3. Run comprehensive tests before any commit
+npm run checkerrors && npm run build && npm run test:ssr
+```
+
+**NEVER proceed with HIGH RISK changes without explicit user approval!**
+
+---
+
+## 🏗️ ENTERPRISE-LEVEL ARCHITECTURAL CHANGE PROTOCOLS
+
+*Following practices from Google, Netflix, and Microsoft senior engineering teams*
+
+### **🎯 SYSTEMATIC FAILURE PREVENTION**
+
+**PROBLEM**: Claude Code historically fails at detecting cascading architectural errors due to four critical blindness patterns. This section provides enterprise-level protocols to eliminate these failures.
+
+#### **1. MANDATORY DEPENDENCY GRAPH ANALYSIS**
+
+**❌ FAILURE PATTERN**: Making changes without understanding import chains and downstream effects.
+
+**✅ SENIOR DEV PROTOCOL**:
+```bash
+# BEFORE touching ANY architectural file, run complete dependency analysis:
+
+# 1. Map all imports OF the target file
+echo "=== WHO IMPORTS THIS FILE? ==="
+grep -r "from.*$(basename $TARGET_FILE .ts)" src/ --include="*.ts" --include="*.tsx"
+grep -r "import.*$(basename $TARGET_FILE .ts)" src/ --include="*.ts" --include="*.tsx"
+
+# 2. Map all imports BY the target file  
+echo "=== WHAT DOES THIS FILE IMPORT? ==="
+grep -E "^import.*from|^from.*import" $TARGET_FILE
+
+# 3. Trace the full dependency chain (3 levels deep)
+echo "=== DEPENDENCY CHAIN ANALYSIS ==="
+for file in $(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx}); do
+  echo "LEVEL 1: $file imports target"
+  grep -l "$(basename $file .tsx .ts)" src/**/*.{ts,tsx} | head -3 | while read level2; do
+    echo "  LEVEL 2: $level2 imports $file"
+    grep -l "$(basename $level2 .tsx .ts)" src/**/*.{ts,tsx} | head -2 | while read level3; do
+      echo "    LEVEL 3: $level3 imports $level2"
+    done
+  done
+done
+
+# 4. Client/Server boundary analysis
+echo "=== CLIENT/SERVER BOUNDARY ANALYSIS ==="
+for file in $(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx}); do
+  if grep -q "'use client'" "$file"; then
+    echo "🔴 CLIENT CONTEXT: $file"
+  elif grep -q "'use server'" "$file"; then
+    echo "🔵 SERVER CONTEXT: $file"  
+  else
+    echo "⚪ UNIVERSAL CONTEXT: $file"
+  fi
+done
+```
+
+**🚫 NEVER PROCEED** if you cannot answer:
+- What files import this?
+- What contexts (client/server/universal) use this?
+- What will break if I change this directive/pattern?
+
+#### **2. MULTI-CONTEXT TESTING STRATEGY**
+
+**❌ FAILURE PATTERN**: Only running `npm run build` which misses runtime client-side errors.
+
+**✅ SENIOR DEV PROTOCOL**:
+```bash
+# MANDATORY TESTING SEQUENCE - ALL MUST PASS
+
+echo "🏗️  PHASE 1: BUILD VALIDATION"
+npm run checkerrors    # TypeScript + ESLint
+npm run build          # Next.js compilation
+echo "✅ Build phase passed"
+
+echo "🖥️  PHASE 2: SERVER-SIDE RENDERING TEST"  
+npm run test:ssr       # Custom SSR validation
+echo "✅ SSR phase passed"
+
+echo "🌐 PHASE 3: CLIENT-SIDE RUNTIME TEST"
+# Start production server
+npm run build && npm start &
+SERVER_PID=$!
+sleep 5
+
+# Test actual browser requests
+curl -f http://localhost:3000 > /dev/null || (echo "❌ Homepage failed"; kill $SERVER_PID; exit 1)
+curl -f http://localhost:3000/dashboard > /dev/null || (echo "❌ Dashboard failed"; kill $SERVER_PID; exit 1)
+curl -f http://localhost:3000/login > /dev/null || (echo "❌ Login failed"; kill $SERVER_PID; exit 1)
+
+kill $SERVER_PID
+echo "✅ Client runtime phase passed"
+
+echo "📦 PHASE 4: BUNDLE ANALYSIS"
+npm run build -- --analyze  # Check bundle composition
+echo "✅ Bundle analysis phase passed"
+
+echo "🎯 ALL PHASES PASSED - SAFE TO PROCEED"
+```
+
+**🚫 NEVER COMMIT** without passing all 4 phases.
+
+#### **3. ARCHITECTURAL DEPTH UNDERSTANDING**
+
+**❌ FAILURE PATTERN**: Surface-level file editing without understanding framework implications.
+
+**✅ SENIOR DEV PROTOCOL**:
+
+Before changing ANY architectural pattern, demonstrate understanding by explaining:
+
+**For `'use client'` changes:**
+```
+REQUIRED KNOWLEDGE CHECK:
+- What is the Next.js client/server boundary?
+- How does bundler treat 'use client' vs universal code?
+- What happens to process.env in client vs server contexts?
+- How does SSR hydration work with client components?
+- What are the bundling implications?
+
+MANDATORY RESEARCH: If you cannot explain these concepts in detail, 
+STOP and research Next.js App Router architecture first.
+```
+
+**For Provider component changes:**
+```
+REQUIRED KNOWLEDGE CHECK:  
+- What is the React component tree rendering order in SSR?
+- How do providers affect server-side vs client-side rendering?
+- What happens during hydration mismatch?
+- How does query client instantiation differ in SSR vs client?
+
+MANDATORY RESEARCH: If uncertain about any concept, research React SSR patterns.
+```
+
+**For Environment utility changes:**
+```
+REQUIRED KNOWLEDGE CHECK:
+- When is process.env available vs undefined?
+- How do bundlers handle environment variables?
+- What's the difference between NEXT_PUBLIC_ vars and server-only vars?
+- How does client-side bundling affect process references?
+
+MANDATORY RESEARCH: Study Next.js environment variable documentation.
+```
+
+#### **4. COMPREHENSIVE IMPACT ANALYSIS**
+
+**❌ FAILURE PATTERN**: Changing files in isolation without considering cascading effects.
+
+**✅ SENIOR DEV PROTOCOL**:
+
+```bash
+# ENTERPRISE IMPACT ANALYSIS CHECKLIST
+
+echo "📊 CHANGE IMPACT ANALYSIS REPORT"
+echo "================================"
+
+TARGET_FILE="$1"
+CHANGE_TYPE="$2"
+
+# 1. Blast Radius Calculation
+echo "🎯 BLAST RADIUS:"
+DIRECT_IMPORTS=$(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx} | wc -l)
+echo "  Direct imports: $DIRECT_IMPORTS files"
+
+TRANSITIVE_IMPORTS=$(for f in $(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx}); do 
+  grep -l "$(basename $f .tsx .ts)" src/**/*.{ts,tsx}; 
+done | sort -u | wc -l)
+echo "  Transitive imports: $TRANSITIVE_IMPORTS files"
+
+if [ $DIRECT_IMPORTS -gt 5 ] || [ $TRANSITIVE_IMPORTS -gt 10 ]; then
+  echo "🚨 HIGH BLAST RADIUS - REQUIRE SENIOR APPROVAL"
+fi
+
+# 2. Context Boundary Analysis  
+echo "🔄 CONTEXT BOUNDARIES:"
+CLIENT_USAGE=0
+SERVER_USAGE=0
+for file in $(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx}); do
+  if grep -q "'use client'" "$file"; then
+    CLIENT_USAGE=$((CLIENT_USAGE + 1))
+  else
+    SERVER_USAGE=$((SERVER_USAGE + 1))
+  fi
+done
+
+echo "  Client context usage: $CLIENT_USAGE files"
+echo "  Server context usage: $SERVER_USAGE files"
+
+if [ $CLIENT_USAGE -gt 0 ] && [ $SERVER_USAGE -gt 0 ]; then
+  echo "🚨 MIXED CONTEXT USAGE - HIGH RISK"
+fi
+
+# 3. Critical Path Analysis
+echo "🛣️  CRITICAL PATHS:"
+if grep -q "layout.tsx" <<< $(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx}); then
+  echo "  ❌ CRITICAL: Used in app layout (affects all routes)"
+fi
+
+if grep -q "Provider" <<< $(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx}); then
+  echo "  ❌ CRITICAL: Used in provider components"
+fi
+
+if grep -q "middleware" <<< $(grep -l "$(basename $TARGET_FILE .ts)" src/**/*.{ts,tsx}); then
+  echo "  ❌ CRITICAL: Used in middleware (Edge Runtime)"
+fi
+
+# 4. Risk Assessment
+echo "⚠️  RISK ASSESSMENT:"
+case "$CHANGE_TYPE" in
+  "use-client-removal"|"provider-change"|"middleware-change")
+    echo "  🔴 CRITICAL RISK - Mandatory senior review + staging deployment"
+    ;;
+  "env-utility"|"auth-change")
+    echo "  🟡 HIGH RISK - Mandatory impact testing"
+    ;;
+  *)
+    echo "  🟢 LOW RISK - Standard testing required"
+    ;;
+esac
+
+echo ""
+echo "📋 REQUIRED APPROVALS:"
+if [ $DIRECT_IMPORTS -gt 5 ] || [ $CLIENT_USAGE -gt 0 ] && [ $SERVER_USAGE -gt 0 ]; then
+  echo "  ✋ STOP - Explicit user approval required"
+  echo "  📞 Present this analysis to user first"
+else
+  echo "  ✅ Standard change - proceed with testing"
+fi
+```
+
+### **🛡️ MANDATORY IMPLEMENTATION RULES**
+
+1. **DEPENDENCY ANALYSIS FIRST**: Always run dependency analysis before any architectural change
+2. **MULTI-CONTEXT TESTING**: Never trust build success - test in browser + SSR + server contexts  
+3. **FRAMEWORK EXPERTISE REQUIRED**: Demonstrate deep understanding of patterns being modified
+4. **IMPACT ANALYSIS**: Calculate blast radius and context boundaries before changes
+5. **SENIOR APPROVAL**: High-risk changes require explicit user approval with analysis presentation
+
+**VIOLATION OF THESE PROTOCOLS = IMMEDIATE HALT OF WORK**
+
+These protocols eliminate the systematic failures that caused the recent SSR/client cascade issues.
+
 ### **1. Require Explicit Permission for Major Changes**
 
 - ALWAYS check with user before removing any existing functionality
-- If encountering blockers, STOP and ask for guidance rather than making unilateral decisions
+- If encountering blockers, STOP and ask for guidance rather than making unilateral decisions  
 - RULE: "Never delete code without explicit permission"
+- **NEW**: NEVER make architectural changes without impact analysis
 
 ### **2. Demand Clear Communication of Tradeoffs**
 
