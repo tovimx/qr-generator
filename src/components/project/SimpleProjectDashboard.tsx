@@ -26,6 +26,7 @@ export default function SimpleProjectDashboard({
   // TanStack Query hooks
   const { data: projects = [], isLoading: projectsLoading } = useProjects(initialProjects)
   const createProjectMutation = useCreateProject()
+  const { mutateAsync: createProjectAsync, isPending: createProjectPending } = createProjectMutation
   
   // Local state
   const [selectedProject, setSelectedProject] = useState<ProjectWithStats | null>(
@@ -42,10 +43,13 @@ export default function SimpleProjectDashboard({
   } = useQRCodes(selectedProject?.id, selectedProject?.id === initialProjects.find(p => p.isDefault)?.id ? initialQRCodes : undefined)
   
   const createQRCodeMutation = useCreateQRCode()
+  const { mutateAsync: createQRCodeAsync, isPending: createQRCodePending } = createQRCodeMutation
   const deleteQRCodeMutation = useDeleteQRCode()
+  const { mutateAsync: deleteQRCodeAsync, isPending: deleteQRCodePending } = deleteQRCodeMutation
   const updateQRCodeMutation = useUpdateQRCode()
+  const { mutateAsync: updateQRCodeAsync, isPending: updateQRCodePending } = updateQRCodeMutation
   
-  const isLoading = projectsLoading || qrCodesLoading || createProjectMutation.isPending || createQRCodeMutation.isPending || deleteQRCodeMutation.isPending || updateQRCodeMutation.isPending
+  const isLoading = projectsLoading || qrCodesLoading || createProjectPending || createQRCodePending || deleteQRCodePending || updateQRCodePending
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<string | null>(null)
   const [editQRNameOpen, setEditQRNameOpen] = useState<string | null>(null)
@@ -86,7 +90,7 @@ export default function SimpleProjectDashboard({
 
   const handleProjectCreate = async (name: string) => {
     try {
-      const newProject = await createProjectMutation.mutateAsync(name)
+      const newProject = await createProjectAsync(name)
       setSelectedProject(newProject)
     } catch (error) {
       console.error('Error creating project:', error)
@@ -105,7 +109,7 @@ export default function SimpleProjectDashboard({
     const qrTitle = createQRNameInput.trim() || `QR Code ${qrCodes.length + 1}`
 
     try {
-      const newQRCode = await createQRCodeMutation.mutateAsync({
+      const newQRCode = await createQRCodeAsync({
         title: qrTitle,
         projectId: selectedProject.id,
       })
@@ -120,7 +124,7 @@ export default function SimpleProjectDashboard({
 
   const handleDeleteQRCode = async (qrCodeId: string) => {
     try {
-      await deleteQRCodeMutation.mutateAsync(qrCodeId)
+      await deleteQRCodeAsync(qrCodeId)
       
       // If we deleted the selected QR code, clear selection
       if (selectedQRCode?.id === qrCodeId) {
@@ -140,7 +144,7 @@ export default function SimpleProjectDashboard({
     if (!newQRName.trim()) return
     
     try {
-      const updatedQRCode = await updateQRCodeMutation.mutateAsync({
+      const updatedQRCode = await updateQRCodeAsync({
         id: qrCodeId,
         updates: { title: newQRName.trim() }
       })

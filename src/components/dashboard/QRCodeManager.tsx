@@ -25,10 +25,15 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
   // TanStack Query hooks
   const { data: domains = [] } = useDomains()
   const updateDestinationMutation = useUpdateQRCodeDestination()
+  const { mutateAsync: updateDestinationAsync, isPending: updateDestinationPending } = updateDestinationMutation
   const updateLinksMutation = useUpdateQRCodeLinks()
+  const { mutateAsync: updateLinksAsync, isPending: updateLinksPending } = updateLinksMutation
   const updateLogoMutation = useUpdateQRCodeLogo()
+  const { mutateAsync: updateLogoAsync, isPending: updateLogoPending } = updateLogoMutation
   const updateStyleMutation = useUpdateQRCodeStyle()
+  const { mutateAsync: updateStyleAsync, isPending: updateStylePending } = updateStyleMutation
   const updatePreferredDomainMutation = useUpdateQRCodePreferredDomain()
+  const { mutateAsync: updatePreferredDomainAsync } = updatePreferredDomainMutation
 
   // Local state
   const [editingDestination, setEditingDestination] = useState(false)
@@ -47,7 +52,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     return getAppBaseUrl()
   }
   
-  const loading = updateDestinationMutation.isPending || updateLinksMutation.isPending || updateLogoMutation.isPending || updateStyleMutation.isPending
+  const loading = updateDestinationPending || updateLinksPending || updateLogoPending || updateStylePending
   const error: string | null = null // Error handling is done by mutations
 
   // Update local state when the prop changes
@@ -80,7 +85,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     }
     
     try {
-      const updatedQrCode = await updatePreferredDomainMutation.mutateAsync({
+      const updatedQrCode = await updatePreferredDomainAsync({
         id: qrCode.id,
         preferredDomainId
       })
@@ -96,7 +101,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     if (!qrCode) return
 
     try {
-      const updatedQrCode = await updateLinksMutation.mutateAsync({
+      const updatedQrCode = await updateLinksAsync({
         id: qrCode.id,
         links
       })
@@ -111,7 +116,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     if (!qrCode) return
 
     try {
-      const updatedQrCode = await updateDestinationMutation.mutateAsync({
+      const updatedQrCode = await updateDestinationAsync({
         id: qrCode.id,
         redirectType,
         redirectUrl: redirectType === 'url' ? redirectUrl : null
@@ -130,7 +135,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     if (!qrCode) return
 
     try {
-      const updatedQrCode = await updateLogoMutation.mutateAsync({
+      const updatedQrCode = await updateLogoAsync({
         id: qrCode.id,
         logoUrl,
         logoSize,
@@ -147,7 +152,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     if (!qrCode) return
 
     try {
-      const updatedQrCode = await updateStyleMutation.mutateAsync({
+      const updatedQrCode = await updateStyleAsync({
         id: qrCode.id,
         ...(cornerRadius !== undefined && { cornerRadius }),
         ...(fgColor !== undefined && { fgColor }),

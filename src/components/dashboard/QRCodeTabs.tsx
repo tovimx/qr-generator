@@ -17,14 +17,17 @@ interface QRCodeTabsProps {
 export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode, projectId }: QRCodeTabsProps) {
   // TanStack Query mutations
   const createQRCodeMutation = useCreateQRCode()
+  const { mutateAsync: createQRCodeAsync, isPending: createQRCodePending } = createQRCodeMutation
   const deleteQRCodeMutation = useDeleteQRCode()
+  const { mutateAsync: deleteQRCodeAsync, isPending: deleteQRCodePending } = deleteQRCodeMutation
   const updateQRCodeMutation = useUpdateQRCode()
+  const { mutateAsync: updateQRCodeAsync, isPending: updateQRCodePending } = updateQRCodeMutation
 
   // Local state
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
   
-  const loading = createQRCodeMutation.isPending || deleteQRCodeMutation.isPending || updateQRCodeMutation.isPending
+  const loading = createQRCodePending || deleteQRCodePending || updateQRCodePending
   const error: string | null = null // Error handling is done by mutation hooks
 
   const handleCreateQRCode = async () => {
@@ -35,7 +38,7 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode, pr
     }
 
     try {
-      const newQrCode = await createQRCodeMutation.mutateAsync({
+      const newQrCode = await createQRCodeAsync({
         title: `QR Code ${qrCodes.length + 1}`,
         projectId
       })
@@ -54,7 +57,7 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode, pr
     }
 
     try {
-      await deleteQRCodeMutation.mutateAsync(qrCodeId)
+      await deleteQRCodeAsync(qrCodeId)
       
       // If we deleted the selected QR code, select the first remaining one
       if (selectedQRCode?.id === qrCodeId && qrCodes.length > 1) {
@@ -76,7 +79,7 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode, pr
     }
 
     try {
-      await updateQRCodeMutation.mutateAsync({
+      await updateQRCodeAsync({
         id: qrCodeId,
         updates: { title: newTitle.trim() }
       })
