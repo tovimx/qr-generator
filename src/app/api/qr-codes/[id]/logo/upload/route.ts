@@ -75,8 +75,8 @@ export async function POST(
     const fileContent = new Blob([bytes], { type: file.type })
     
     // Create service client that bypasses RLS
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']
+    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY']
     
     console.log('Service role key exists:', !!serviceRoleKey)
     

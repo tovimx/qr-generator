@@ -26,19 +26,19 @@ function getContrastRatio(color1: string, color2: string): number {
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
     return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
+      r: parseInt(result[1]!, 16),
+      g: parseInt(result[2]!, 16),
+      b: parseInt(result[3]!, 16)
     } : { r: 0, g: 0, b: 0 }
   }
 
   // Calculate relative luminance
   const getLuminance = (rgb: { r: number, g: number, b: number }) => {
-    const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(val => {
+    const vals = [rgb.r, rgb.g, rgb.b].map(val => {
       val = val / 255
       return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4)
     })
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return 0.2126 * vals[0]! + 0.7152 * vals[1]! + 0.0722 * vals[2]!
   }
 
   const rgb1 = hexToRgb(color1)
@@ -137,7 +137,7 @@ export function validateQRScannability(config: QRConfiguration): QRValidationRes
   if (config.fgColor) {
     const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(config.fgColor)
     if (rgb) {
-      const brightness = (parseInt(rgb[1], 16) + parseInt(rgb[2], 16) + parseInt(rgb[3], 16)) / 3
+      const brightness = (parseInt(rgb[1]!, 16) + parseInt(rgb[2]!, 16) + parseInt(rgb[3]!, 16)) / 3
       if (brightness > 128) {
         warnings.push('Light QR colors are difficult to scan')
         suggestions.push('Use a darker color for better scanning')

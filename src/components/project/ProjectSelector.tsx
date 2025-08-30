@@ -39,6 +39,7 @@ export default function ProjectSelector({
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
     }
+    return undefined
   }, [isOpen, isCreating, isEditingName])
 
   const handleCreateProject = async (e: React.FormEvent) => {

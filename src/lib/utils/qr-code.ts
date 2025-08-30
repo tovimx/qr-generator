@@ -16,7 +16,7 @@ export function getAppBaseUrl(): string {
 
   // Fallback to public env vars available to the client bundle
   const envUrl =
-    (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+    (process.env['NEXT_PUBLIC_APP_URL'] || process.env['NEXT_PUBLIC_SITE_URL'] || '').replace(/\/$/, '');
   if (envUrl) return envUrl;
 
   // Last resort for local development

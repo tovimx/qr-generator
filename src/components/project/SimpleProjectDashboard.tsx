@@ -58,7 +58,7 @@ export default function SimpleProjectDashboard({
   useEffect(() => {
     if (!selectedProject && projects.length > 0) {
       const defaultProject = projects.find(p => p.isDefault) || projects[0]
-      setSelectedProject(defaultProject)
+      setSelectedProject(defaultProject ?? null)
     }
   }, [projects, selectedProject])
 
@@ -72,6 +72,7 @@ export default function SimpleProjectDashboard({
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
     }
+    return undefined
   }, [dropdownOpen])
 
   // These functions are no longer needed as TanStack Query handles data fetching

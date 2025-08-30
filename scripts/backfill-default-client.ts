@@ -12,7 +12,7 @@ function normalizeHost(url: string | undefined | null): string {
 }
 
 async function main() {
-  const platformHost = normalizeHost(process.env.NEXT_PUBLIC_APP_URL)
+  const platformHost = normalizeHost(process.env['NEXT_PUBLIC_APP_URL'])
   console.log(`Using platform host: ${platformHost}`)
 
   const users = await prisma.user.findMany({ select: { id: true } })

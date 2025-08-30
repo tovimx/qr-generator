@@ -1,18 +1,42 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
+    // Target and library settings for 2025
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "es2022"],
+    
+    // Module settings
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    
+    // Strict type checking (2025 enhanced - gradual rollout)
+    "strict": true,
+    "exactOptionalPropertyTypes": false, // TODO: Enable after fixing all components
+    "noUncheckedIndexedAccess": false,   // TODO: Enable after fixing array access
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": true,
+    
+    // Additional type checking
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    
+    // Code quality
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "checkJs": true,
+    
+    // Next.js specific
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
     "jsx": "preserve",
     "incremental": true,
+    
     "plugins": [
       {
         "name": "next"
