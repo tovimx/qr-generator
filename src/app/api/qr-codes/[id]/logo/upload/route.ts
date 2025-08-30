@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/auth/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db/prisma'
-import { ENV } from '@/lib/env'
 
 const LOGO_BUCKET = 'qr-logos'
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
@@ -76,8 +75,8 @@ export async function POST(
     const fileContent = new Blob([bytes], { type: file.type })
     
     // Create service client that bypasses RLS
-    const supabaseUrl = ENV.SUPABASE_URL()
-    const serviceRoleKey = ENV.SUPABASE_SERVICE_ROLE_KEY()
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']!
+    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY']!
     
     console.log('Service role key exists:', !!serviceRoleKey)
     
