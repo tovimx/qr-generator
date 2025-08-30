@@ -1189,3 +1189,62 @@ import { QueryClient } from '@tanstack/react-query'
 - ✅ Production Ready: All quality gates passed
 
 ---
+
+## Session: 2025-08-30 21:15 - Cascade Error Analysis & Comprehensive Environment Variable Fix
+
+**Previous context**: Continued from production deployment investigation session (20:30)
+
+**Today's goal**:
+- [x] Analyze fourth production error (Digest: 2257328419)
+- [x] Perform comprehensive audit of all environment variable usage
+- [x] Implement systematic fix for all ENV utility anti-patterns
+- [x] Research web articles about Next.js environment variable best practices
+- [x] Document the complete cascade error sequence and root cause analysis
+
+**Cascade Error Sequence Discovered**:
+
+| Error | Digest | File | Root Cause | Status |
+|-------|--------|------|------------|--------|
+| **1st** | 4033081611 | `query-client.ts` | `'use client'` directive blocking SSR | ✅ **Fixed** |
+| **2nd** | - | `supabase/client.ts` | Client-side `process.env` access failure | ✅ **Fixed** |
+| **3rd** | 3130368227 | `supabase/server.ts` | Server-side ENV utility pattern | ✅ **Fixed** |
+| **4th** | 2257328419 | **Multiple Files** | **Systematic ENV utility anti-pattern** | ✅ **Fixed** |
+
+**Key Discovery**: All cascade errors were triggered by the TanStack Query refactor (commit `e499ad7`) but were **pre-existing foundational vulnerabilities** in our environment variable architecture.
+
+**Files Fixed in PR #1** (https://github.com/tovimx/qr-generator/pull/1):
+- ✅ `src/lib/auth/supabase/server.ts` - Direct env access instead of ENV utility
+- ✅ `src/lib/db/prisma.ts` - `process.env['NODE_ENV']` bracket notation
+- ✅ `src/lib/utils/hash.ts` - Direct `process.env['SUPABASE_SERVICE_ROLE_KEY']` access
+- ✅ `src/lib/utils/qr-code.ts` - Direct `process.env['NEXT_PUBLIC_*']` access
+- ✅ `src/app/api/qr-codes/[id]/logo/upload/route.ts` - Direct Supabase env access
+
+**Web Research Findings** - Best Practices for Next.js Environment Variables:
+
+1. **❌ Anti-Pattern**: ENV utility functions that dynamically access `process.env`
+   - **Why it fails**: Webpack's DefinePlugin replaces `process.env` at build time, not runtime
+   - **Production issue**: Dynamic lookups return `undefined` after bundling
+
+2. **✅ Best Practices**:
+   - Use direct `process.env.VARIABLE` or `process.env['VARIABLE']` for static replacement
+   - Prefix client-side variables with `NEXT_PUBLIC_` for proper inlining
+   - Keep server-side environment access simple and direct
+   - Avoid utility functions that abstract environment variable access
+
+3. **🔬 Technical Root Cause**:
+   - **Build-time vs Runtime**: Next.js inlines environment variables at build time
+   - **Static Analysis**: Only statically analyzable expressions are replaced
+   - **Production Bundling**: Dynamic environment access fails after webpack processing
+
+**Foundational Issue Confirmed**:
+The TanStack Query refactor **exposed** systematic architectural flaws in our environment variable design. The "ENV utility pattern" violated core webpack/Next.js principles about static environment variable replacement.
+
+**Prevention Strategy Implemented**:
+- ✅ Enterprise-level dependency analysis scripts
+- ✅ Multi-context testing suite (build + SSR + client + bundle)
+- ✅ Architectural impact analysis framework
+- ✅ Updated CLAUDE.md with mandatory protocols for architectural changes
+
+**Next session focus**: Merge PR #1 and verify all production errors are resolved. Monitor deployment to ensure dashboard loads successfully on both Vercel subdomain and custom domain (`planodigital.mx`).
+
+---

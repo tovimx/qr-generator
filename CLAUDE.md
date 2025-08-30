@@ -47,6 +47,52 @@ This project uses a structured session management system. Every coding session i
 
 Always follow the template structure in SESSIONS.md for consistency.
 
+## CRITICAL ERROR HANDLING PROTOCOLS
+
+### **🚨 ERROR MESSAGE ANALYSIS (MANDATORY)**
+
+**NEVER react to error messages without proper analysis. Follow this protocol:**
+
+#### **Step 1: PAUSE and Analyze**
+Before making ANY changes when encountering errors:
+1. **Read the FULL error message** - don't just scan keywords
+2. **Identify the ROOT CAUSE** - what is the actual problem?
+3. **Consider multiple solutions** - don't jump to the first fix
+4. **Ask: "What is the user trying to achieve?"** - preserve their intent
+
+#### **Step 2: Solution Hierarchy**
+Always prefer solutions in this order:
+1. **Fix the configuration** (update dependencies, settings)
+2. **Add missing dependencies** (install what's needed) 
+3. **Modify code minimally** (small targeted changes)
+4. **NEVER downgrade working versions** without explicit permission
+
+#### **Step 3: Common Anti-Patterns to AVOID**
+- ❌ **Reactive downgrading**: "Error says <5.9.0, so downgrade to 5.8.x"
+- ❌ **Removing features**: "Error in component, so delete the component"
+- ❌ **Assumptions**: "User probably doesn't need this version"
+- ❌ **Silent changes**: Making major changes without explanation
+
+#### **Step 4: Required Communication**
+When encountering errors:
+1. **Explain what you found**: "The error shows X, which means Y"
+2. **Present options**: "We can either A, B, or C - which do you prefer?"
+3. **Justify your recommendation**: "I recommend A because..."
+4. **Get confirmation**: "Does this approach work for you?"
+
+#### **Example: TypeScript Version Conflicts**
+**❌ Wrong approach**: 
+"ESLint plugin requires <5.9.0, so I'll downgrade TypeScript to 5.8.4"
+
+**✅ Correct approach**:
+"ESLint plugin is outdated and doesn't support TypeScript 5.9.2. Options:
+1. Update ESLint plugin to newer version that supports 5.9.2
+2. Override ESLint configuration 
+3. Downgrade TypeScript (not recommended)
+I recommend option 1 - keep your current TS version and update ESLint."
+
+**Remember: Your role is to SOLVE problems, not create new ones by downgrading working systems.**
+
 ## Key Architecture Decisions
 
 # CRITICAL RULES - NEVER BREAK THESE
@@ -102,6 +148,169 @@ npm run checkerrors && npm run build && npm run test:ssr
 ## 🏗️ ENTERPRISE-LEVEL ARCHITECTURAL CHANGE PROTOCOLS
 
 *Following practices from Google, Netflix, and Microsoft senior engineering teams*
+
+### **🧠 MAXIMUM REASONING POWER MANDATE**
+
+**CRITICAL DIRECTIVE**: Claude Code MUST use maximum analytical depth for ALL error investigation. The failure patterns from the 2025-08-30 production deployment crisis are NEVER to be repeated.
+
+#### **🚨 THE FOUR COGNITIVE FAILURES (NEVER REPEAT)**
+
+Based on the systematic analysis failure during Digest: 4033081611 → 3130368227 → 2257328419 cascading production errors:
+
+**FAILURE #1: Linear Problem-Solving Bias**
+- ❌ **What happened**: Treated each error as isolated incident instead of systemic issue
+- ❌ **Symptom**: Fixed `'use client'` → process.env → ENV utility → Prisma without seeing pattern
+- ✅ **Required approach**: Always ask "What is the systematic architectural violation causing all these?"
+
+**FAILURE #2: Surface-Level Analysis** 
+- ❌ **What happened**: Made code changes without understanding Next.js App Router architecture
+- ❌ **Symptom**: Removed `'use client'` without analyzing client/server boundary implications  
+- ✅ **Required approach**: Demonstrate deep framework knowledge before touching architectural files
+
+**FAILURE #3: Confirmation Bias**
+- ❌ **What happened**: Assumed build success = runtime success, ignored context boundary violations
+- ❌ **Symptom**: Multiple "fixed" PRs that still caused production errors
+- ✅ **Required approach**: Test all contexts (build, SSR, client runtime, browser) before claiming success
+
+**FAILURE #4: Lack of Holistic Thinking**
+- ❌ **What happened**: Fixed symptoms without identifying QueryProvider at root layout as root cause
+- ❌ **Symptom**: 5 cascading error cycles before finding the systematic architectural problem
+- ✅ **Required approach**: Map component tree, trace data flow, identify architectural violations first
+
+### **🎯 SYSTEMATIC FAILURE PREVENTION FRAMEWORK**
+
+**MANDATORY PROTOCOL**: Before touching ANY architectural file, complete this systematic analysis:
+
+#### **PHASE 1: ARCHITECTURAL UNDERSTANDING (MANDATORY)**
+
+```bash
+echo "🎯 PHASE 1: SYSTEMATIC ARCHITECTURAL ANALYSIS"
+echo "=============================================="
+
+# 1. Framework Knowledge Verification
+echo "📚 FRAMEWORK KNOWLEDGE CHECK:"
+echo "- Next.js App Router SSR/Client boundary rules?"
+echo "- React component tree rendering order in SSR?"  
+echo "- TanStack Query client/server instantiation patterns?"
+echo "- Environment variable bundling behavior?"
+echo "- Provider component placement implications?"
+
+# 2. Component Tree Mapping
+echo "🌳 COMPONENT TREE ANALYSIS:"
+find src -name "layout.tsx" -o -name "*Provider*" -o -name "*Client*" | while read file; do
+  echo "ARCHITECTURAL FILE: $file"
+  if grep -q "use client" "$file"; then
+    echo "  └─ CLIENT BOUNDARY: Forces client-side rendering"
+  fi
+  if grep -q "Provider" "$file"; then
+    echo "  └─ PROVIDER COMPONENT: Affects component tree"
+  fi
+  if grep -q "layout.tsx" "$file"; then
+    echo "  └─ LAYOUT COMPONENT: Affects all routes"
+  fi
+done
+
+# 3. Data Flow Analysis
+echo "🔄 DATA FLOW MAPPING:"
+grep -r "QueryClient\|createQueryClient\|getQueryClient" src/ --include="*.ts" --include="*.tsx" | while read line; do
+  echo "QUERY CLIENT USAGE: $line"
+done
+
+# 4. Environment Variable Analysis  
+echo "🌍 ENVIRONMENT VARIABLE USAGE:"
+grep -r "process\.env\|ENV\." src/ --include="*.ts" --include="*.tsx" | head -10 | while read line; do
+  echo "ENV ACCESS: $line"
+done
+```
+
+**🚫 DO NOT PROCEED** without completing Phase 1 analysis and demonstrating architectural understanding.
+
+#### **PHASE 2: ROOT CAUSE HYPOTHESIS (REQUIRED)**
+
+```bash
+echo "🔍 PHASE 2: ROOT CAUSE HYPOTHESIS GENERATION"
+echo "============================================="
+
+# Must answer these questions before making changes:
+echo "REQUIRED ANALYSIS:"
+echo "1. What is the FUNDAMENTAL architectural violation?"
+echo "2. How does this violation cause cascading errors?"
+echo "3. What is the systematic pattern across all error messages?"
+echo "4. Which component in the tree is violating SSR/Client boundaries?"
+echo "5. How will fixing THIS root cause eliminate ALL symptoms?"
+
+# Systematic Hypothesis Formation
+echo ""
+echo "HYPOTHESIS REQUIREMENTS:"
+echo "✅ Explains ALL observed error patterns"
+echo "✅ Identifies single systematic architectural violation"  
+echo "✅ Predicts what will break if not fixed properly"
+echo "✅ Addresses framework-level design principles"
+```
+
+#### **PHASE 3: COMPREHENSIVE TESTING STRATEGY (MANDATORY)**
+
+```bash
+echo "🧪 PHASE 3: COMPREHENSIVE TESTING PROTOCOL"
+echo "========================================="
+
+# All contexts must be tested - no exceptions
+echo "MANDATORY TEST SEQUENCE:"
+
+echo "1️⃣  BUILD CONTEXT:"
+npm run checkerrors
+npm run build
+
+echo "2️⃣  SSR CONTEXT:" 
+npm run test:ssr
+
+echo "3️⃣  CLIENT RUNTIME CONTEXT:"
+npm start &
+SERVER_PID=$!
+sleep 5
+curl -f http://localhost:3000 || echo "❌ CLIENT RUNTIME FAILED"
+curl -f http://localhost:3000/dashboard || echo "❌ DASHBOARD RUNTIME FAILED"
+kill $SERVER_PID
+
+echo "4️⃣  BROWSER CONTEXT:"
+echo "Manual browser testing required for:"
+echo "- JavaScript console errors"
+echo "- Network request failures"
+echo "- Hydration mismatches"
+echo "- Client-side navigation"
+
+echo "✅ ALL 4 CONTEXTS MUST PASS - NO EXCEPTIONS"
+```
+
+### **⚡ ARCHITECTURE-FIRST ERROR PROTOCOL**
+
+When encountering ANY error, follow this systematic approach:
+
+**STEP 1: PAUSE AND THINK SYSTEMATICALLY**
+- ❌ Do not immediately fix the symptom 
+- ✅ Ask: "What architectural principle is being violated?"
+- ✅ Map the component tree and identify boundaries
+- ✅ Trace data flow from root to error location
+
+**STEP 2: GENERATE ARCHITECTURAL HYPOTHESIS**
+- ✅ "The root cause is [architectural violation] because [framework principle]"
+- ✅ "This causes cascading errors because [explain chain reaction]"
+- ✅ "Fixing [root cause] will eliminate symptoms [A, B, C]"
+
+**STEP 3: VERIFY HYPOTHESIS BEFORE IMPLEMENTING**
+- ✅ Test hypothesis against all observed symptoms
+- ✅ Predict what else might break
+- ✅ Identify any assumptions that need validation
+
+**STEP 4: IMPLEMENT SYSTEMATIC FIX**
+- ✅ Address the architectural violation, not the symptoms
+- ✅ Make minimal changes that restore architectural integrity
+- ✅ Test all contexts before claiming success
+
+**STEP 5: VALIDATE SYSTEMATIC RESOLUTION**
+- ✅ Confirm ALL previous symptoms are eliminated
+- ✅ Ensure no new symptoms emerged
+- ✅ Verify architectural integrity is restored
 
 ### **🎯 SYSTEMATIC FAILURE PREVENTION**
 
