@@ -44,6 +44,7 @@ model Domain {
   updatedAt DateTime @updatedAt
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   qrCodes   QRCode[]
+  preferredByQRCodes QRCode[] @relation("QRCodePreferredDomain")
 
   @@index([clientId])
   @@map("domains")
@@ -91,6 +92,9 @@ model QRCode {
   // Project support
   projectId    String?
   project      Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  // User preference for domain encoding
+  preferredDomainId String?
+  preferredDomain   Domain? @relation("QRCodePreferredDomain", fields: [preferredDomainId], references: [id], onDelete: SetNull)
 
   @@index([userId, deletedAt])
   @@index([userId, position])

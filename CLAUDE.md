@@ -409,10 +409,102 @@ function extractUserData<T extends { user: unknown }>(data: T): ExtractUser<T> {
 - [ ] Event handlers have correct parameter types
 
 ### State Management Architecture
-- **Current**: Manual state management with useEffect hooks
-- **Next Priority**: Migrate to TanStack Query for server state
-- **Problem**: State synchronization issues between components
-- **Solution**: Replace router.refresh() with automatic cache invalidation
+- **Current**: TanStack Query with React Query for server state management
+- **Approach**: Custom hooks pattern for data fetching and mutations
+- **Benefits**: Automatic cache invalidation, optimistic updates, error handling
+- **Migration**: Completed - all manual fetch calls replaced with TanStack Query hooks
+
+### 🚫 DEPRECATED PATTERNS - DO NOT USE
+
+#### **❌ Manual Fetch Pattern (NEVER USE)**
+```typescript
+// NEVER use this approach in this project
+try {
+  const response = await fetch('/api/qr-codes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: `QR Code ${qrCodes.length + 1}`
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json() as APIResponse
+    throw new Error(errorData.error || 'Failed to create QR code')
+  }
+
+  const result = await response.json()
+  // Manual state updates, router.refresh(), etc.
+} catch (error) {
+  // Manual error handling
+}
+```
+
+#### **✅ TanStack Query Mutation Pattern (ALWAYS USE)**
+```typescript
+// ALWAYS use this pattern for all API calls
+import { useMutation } from '@tanstack/react-query'
+
+// Define the mutation hook
+const { mutateAsync: updateStyleAsync, isPending } = useMutation({ 
+  mutationFn: updateStyle,
+  onSuccess: () => {
+    // Automatic cache invalidation handled by query client
+  },
+  onError: (error) => {
+    // Centralized error handling
+    console.error('Update failed:', error)
+  }
+})
+
+// In component
+if (isPending) return <Spinner />
+
+// Execute mutation
+try {
+  await updateStyleAsync(data)
+  // Success handling (if needed)
+} catch (error) {
+  // Error is already handled by onError
+}
+```
+
+### 🔧 TanStack Query Implementation Guidelines
+
+#### **Required Pattern for All API Operations:**
+1. **Create custom hooks** in `/src/hooks/` directory
+2. **Use mutations** for all POST, PUT, DELETE operations  
+3. **Use queries** for all GET operations
+4. **Implement automatic cache invalidation** via queryClient
+5. **Handle loading states** with `isPending` from mutations/queries
+6. **Centralize error handling** in mutation/query options
+
+#### **Example Custom Hook Structure:**
+```typescript
+// /src/hooks/use-qr-codes.ts
+export function useCreateQRCode() {
+  return useMutation({
+    mutationFn: async (data: CreateQRCodeRequest) => {
+      // API call implementation
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['qr-codes'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+```
+
+#### **Benefits of TanStack Query Pattern:**
+- ✅ Automatic background refetching
+- ✅ Optimistic updates support  
+- ✅ Built-in loading and error states
+- ✅ Cache management and invalidation
+- ✅ Reduced boilerplate code
+- ✅ Better user experience
+- ✅ Type-safe API calls
 
 ### Database Changes
 - **Always use migrations** - never modify schema directly
@@ -432,13 +524,79 @@ function extractUserData<T extends { user: unknown }>(data: T): ExtractUser<T> {
 - **QR codes can encode custom domains**
 - **Fallback to platform domain** if custom domain unavailable
 
-## Git Commit Rules
+## Git Commit & Push Rules
+
+### 🚫 **NEVER Push Without User Permission**
+
+**CRITICAL RULE**: NEVER push code to repository without explicitly asking the user first.
+
+#### **Required Pre-Push Checklist:**
+Before pushing ANY code changes, you MUST complete these steps in order:
+
+1. **🔍 Run Build Check**
+   ```bash
+   npm run build
+   ```
+   - ❌ If build fails → Fix errors before proceeding
+   - ✅ Build must complete without errors
+
+2. **🧹 Run ESLint Check**
+   ```bash
+   npm run lint
+   ```
+   - ❌ If linting errors exist → Fix all errors before proceeding  
+   - ⚠️ Warnings are acceptable, but errors must be resolved
+   - ✅ ESLint must pass without errors
+
+3. **📝 Run TypeScript Check**
+   ```bash
+   npx tsc --noEmit
+   ```
+   - ❌ If TypeScript errors exist → Fix all type errors before proceeding
+   - ✅ TypeScript compilation must succeed
+
+4. **👤 Ask User Permission**
+   ```
+   "All checks passed! Ready to push changes. Would you like me to push to the repository?"
+   ```
+   - ❌ If user says no → Do not push
+   - ✅ Only push after explicit user approval
+
+#### **Example Pre-Push Workflow:**
+```bash
+# 1. Build check
+npm run build
+# ✅ Build completed successfully
+
+# 2. Lint check  
+npm run lint
+# ✅ No ESLint errors found
+
+# 3. TypeScript check
+npx tsc --noEmit
+# ✅ No TypeScript errors found
+
+# 4. Ask user permission
+echo "All quality checks passed! Ready to push changes. Proceed? (y/n)"
+```
+
+### **Git Commit Message Rules**
 
 **CRITICAL**: NEVER include the following in git commits:
 - ❌ "🤖 Generated with Claude Code"
 - ❌ "Co-Authored-By: Claude <noreply@anthropic.com>"
 - ❌ Any mention of Claude or AI assistance
 - ✅ Keep commits clean and professional
+
+### **Quality Gate Enforcement**
+
+**If ANY check fails:**
+1. ❌ DO NOT ask user about pushing
+2. 🔧 Fix the errors first
+3. 🔄 Re-run all checks until they pass
+4. ✅ Only then ask user for push permission
+
+This ensures code quality and prevents broken builds from reaching the repository.
 
 ## Important Instruction Reminders
 
@@ -459,18 +617,19 @@ function extractUserData<T extends { user: unknown }>(data: T): ExtractUser<T> {
 
 ### 🚀 Next Session Priority
 
-1. **TypeScript Issues Resolution** (🔥 **CRITICAL - Must Fix First**)
-   - Remove `@ts-expect-error` workaround in ProjectDashboard.tsx
-   - Align QRCodeData interface with Prisma QRCode model
+1. **✅ TanStack Query Migration** (COMPLETED)
+   - ✅ Replaced all manual fetch() calls with TanStack Query hooks  
+   - ✅ Implemented automatic cache invalidation
+   - ✅ Added optimistic updates for better UX
+   - ✅ Eliminated state synchronization bugs
+   - ✅ Created custom hooks pattern in `/src/hooks/` directory
+
+2. **TypeScript Issues Resolution** (🔥 **CURRENT FOCUS**)
+   - Remove any remaining `@ts-expect-error` workarounds
+   - Align QRCodeData interface with Prisma QRCode model  
    - Fix React Hook dependency warnings in existing components
    - Ensure type safety compliance with 2025 best practices (see TypeScript Safety section above)
    - Eliminate all type assertions and implement proper type guards
-
-2. **TanStack Query Refactor** (High Priority - After TypeScript fixes)
-   - Replace manual router.refresh() calls
-   - Implement automatic cache invalidation
-   - Add optimistic updates for better UX
-   - Eliminate state synchronization bugs
 
 ### 📅 Future Priorities
 See [PLAN.md](./PLAN.md) for complete roadmap including:

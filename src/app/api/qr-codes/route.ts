@@ -38,6 +38,14 @@ export async function GET(request: Request) {
         },
         _count: {
           select: { scans: true }
+        },
+        preferredDomain: {
+          select: {
+            id: true,
+            hostname: true,
+            primary: true,
+            verified: true
+          }
         }
       },
       orderBy: { position: 'asc' }
@@ -151,6 +159,14 @@ export async function POST(request: Request) {
         },
         _count: {
           select: { scans: true }
+        },
+        preferredDomain: {
+          select: {
+            id: true,
+            hostname: true,
+            primary: true,
+            verified: true
+          }
         }
       }
     })

@@ -7,6 +7,12 @@ export interface QRCodeData extends QRCode {
     scans: number
   }
   project?: Project | null
+  preferredDomain?: {
+    id: string
+    hostname: string
+    primary: boolean
+    verified: boolean
+  } | null
 }
 
 // For components that need the relations interface
@@ -17,11 +23,11 @@ export interface QRCodeWithRelations extends QRCode {
   }
 }
 
-// Project interface with calculated stats
-export interface ProjectWithStats {
-  id: string
-  name: string
-  isDefault: boolean
+// Project interface with calculated stats  
+export interface ProjectWithStats extends Project {
+  _count: {
+    qrCodes: number
+  }
   qrCodeCount: number
   activeQRCount: number
   totalScans: number

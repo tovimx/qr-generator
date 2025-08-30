@@ -7,9 +7,10 @@ import ProjectSelector from './ProjectSelector'
 import QRCodeManager from '../dashboard/QRCodeManager'
 import DomainManager from '../dashboard/DomainManager'
 import { QRCodeData, ProjectWithStats } from '@/types/qr-code'
-import { APIResponse, QRCodeListResponse, ProjectListResponse, QRCodeCreateResponse } from '@/types/api'
+import { useProjects, useCreateProject } from '@/hooks/use-projects'
+import { useQRCodes, useCreateQRCode, useDeleteQRCode, useUpdateQRCode } from '@/hooks/use-qr-codes'
 
-// Using unified types from @/types/qr-code and @/types/api
+// Using TanStack Query for state management
 
 interface SimpleProjectDashboardProps {
   user: User
@@ -22,15 +23,29 @@ export default function SimpleProjectDashboard({
   initialProjects, 
   initialQRCodes 
 }: SimpleProjectDashboardProps) {
-  const [projects, setProjects] = useState<ProjectWithStats[]>(initialProjects)
+  // TanStack Query hooks
+  const { data: projects = [], isLoading: projectsLoading } = useProjects(initialProjects)
+  const createProjectMutation = useCreateProject()
+  
+  // Local state
   const [selectedProject, setSelectedProject] = useState<ProjectWithStats | null>(
     initialProjects.find(p => p.isDefault) || initialProjects[0] || null
   )
-  const [qrCodes, setQRCodes] = useState<QRCodeData[]>(initialQRCodes)
   const [selectedQRCode, setSelectedQRCode] = useState<QRCodeData | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [isLoading, setIsLoading] = useState(false)
+  
+  // QR Codes query for selected project
+  const { 
+    data: qrCodes = [], 
+    isLoading: qrCodesLoading
+  } = useQRCodes(selectedProject?.id, selectedProject?.id === initialProjects.find(p => p.isDefault)?.id ? initialQRCodes : undefined)
+  
+  const createQRCodeMutation = useCreateQRCode()
+  const deleteQRCodeMutation = useDeleteQRCode()
+  const updateQRCodeMutation = useUpdateQRCode()
+  
+  const isLoading = projectsLoading || qrCodesLoading || createProjectMutation.isPending || createQRCodeMutation.isPending || deleteQRCodeMutation.isPending || updateQRCodeMutation.isPending
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<string | null>(null)
   const [editQRNameOpen, setEditQRNameOpen] = useState<string | null>(null)
@@ -39,12 +54,13 @@ export default function SimpleProjectDashboard({
   const [createQRNameInput, setCreateQRNameInput] = useState('')
   const [activeTab, setActiveTab] = useState<'qr-codes' | 'domains'>('qr-codes')
 
-  // Load QR codes when project changes
+  // Update selected project when projects change
   useEffect(() => {
-    if (selectedProject) {
-      loadQRCodes(selectedProject.id)
+    if (!selectedProject && projects.length > 0) {
+      const defaultProject = projects.find(p => p.isDefault) || projects[0]
+      setSelectedProject(defaultProject)
     }
-  }, [selectedProject])
+  }, [projects, selectedProject])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -58,44 +74,10 @@ export default function SimpleProjectDashboard({
     }
   }, [dropdownOpen])
 
-  const loadProjects = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch('/api/projects')
-      if (response.ok) {
-        const data = await response.json() as ProjectListResponse
-        setProjects(data.projects)
-        
-        if (selectedProject) {
-          const updatedProject = data.projects.find((p: ProjectWithStats) => p.id === selectedProject.id)
-          if (updatedProject) {
-            setSelectedProject(updatedProject)
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading projects:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // These functions are no longer needed as TanStack Query handles data fetching
+  // Data is automatically refetched and cached
 
-  const loadQRCodes = async (projectId: string) => {
-    try {
-      setIsLoading(true)
-      const response = await fetch(`/api/qr-codes?projectId=${projectId}`)
-      if (response.ok) {
-        const data = await response.json() as QRCodeListResponse
-        setQRCodes(data.qrCodes)
-      }
-    } catch (error) {
-      console.error('Error loading QR codes:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleProjectSelect = async (project: ProjectWithStats) => {
+  const handleProjectSelect = (project: ProjectWithStats) => {
     setSelectedProject(project)
     setSelectedQRCode(null)
     setSearchQuery('')
@@ -103,23 +85,11 @@ export default function SimpleProjectDashboard({
 
   const handleProjectCreate = async (name: string) => {
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      })
-
-      if (response.ok) {
-        const newProject = await response.json() as ProjectWithStats
-        setProjects([...projects, newProject])
-        setSelectedProject(newProject)
-      } else {
-        const error = await response.json() as APIResponse
-        alert(error.error || 'Failed to create project')
-      }
+      const newProject = await createProjectMutation.mutateAsync(name)
+      setSelectedProject(newProject)
     } catch (error) {
       console.error('Error creating project:', error)
-      alert('Failed to create project')
+      alert(error instanceof Error ? error.message : 'Failed to create project')
     }
   }
 
@@ -134,99 +104,57 @@ export default function SimpleProjectDashboard({
     const qrTitle = createQRNameInput.trim() || `QR Code ${qrCodes.length + 1}`
 
     try {
-      setIsLoading(true)
-      const response = await fetch('/api/qr-codes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: qrTitle,
-          projectId: selectedProject.id,
-        }),
+      const newQRCode = await createQRCodeMutation.mutateAsync({
+        title: qrTitle,
+        projectId: selectedProject.id,
       })
-
-      if (response.ok) {
-        const newQRCode = await response.json() as QRCodeCreateResponse
-        setQRCodes([...qrCodes, newQRCode])
-        setSelectedQRCode(newQRCode)
-        setCreateQRModalOpen(false)
-        setCreateQRNameInput('')
-        await loadProjects()
-      } else {
-        const error = await response.json() as APIResponse
-        alert(error.error || 'Failed to create QR code')
-      }
+      setSelectedQRCode(newQRCode)
+      setCreateQRModalOpen(false)
+      setCreateQRNameInput('')
     } catch (error) {
       console.error('Error creating QR code:', error)
-      alert('Failed to create QR code')
-    } finally {
-      setIsLoading(false)
+      alert(error instanceof Error ? error.message : 'Failed to create QR code')
     }
   }
 
   const handleDeleteQRCode = async (qrCodeId: string) => {
     try {
-      setIsLoading(true)
-      const response = await fetch(`/api/qr-codes/${qrCodeId}`, {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        // Remove from local state
-        setQRCodes(qrCodes.filter(qr => qr.id !== qrCodeId))
-        // Close modals if this QR code was selected
-        if (selectedQRCode?.id === qrCodeId) {
-          setSelectedQRCode(null)
-        }
-        // Refresh project stats
-        await loadProjects()
-        // Close confirmation dialog
-        setDeleteConfirmOpen(null)
-        setDropdownOpen(null)
-      } else {
-        const error = await response.json() as APIResponse
-        alert(error.error || 'Failed to delete QR code')
+      await deleteQRCodeMutation.mutateAsync(qrCodeId)
+      
+      // If we deleted the selected QR code, clear selection
+      if (selectedQRCode?.id === qrCodeId) {
+        setSelectedQRCode(null)
       }
+      
+      // Close confirmation dialog
+      setDeleteConfirmOpen(null)
+      setDropdownOpen(null)
     } catch (error) {
       console.error('Error deleting QR code:', error)
-      alert('Failed to delete QR code')
-    } finally {
-      setIsLoading(false)
+      alert(error instanceof Error ? error.message : 'Failed to delete QR code')
     }
   }
 
   const handleUpdateQRName = async (qrCodeId: string) => {
     if (!newQRName.trim()) return
-
+    
     try {
-      setIsLoading(true)
-      const response = await fetch(`/api/qr-codes/${qrCodeId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newQRName.trim() }),
+      const updatedQRCode = await updateQRCodeMutation.mutateAsync({
+        id: qrCodeId,
+        updates: { title: newQRName.trim() }
       })
-
-      if (response.ok) {
-        const updatedQRCode = await response.json() as QRCodeData
-        // Update local state
-        setQRCodes(qrCodes.map(qr => 
-          qr.id === qrCodeId ? { ...qr, title: updatedQRCode.title } : qr
-        ))
-        // Update selected QR if it's the one being edited
-        if (selectedQRCode?.id === qrCodeId) {
-          setSelectedQRCode({ ...selectedQRCode, title: updatedQRCode.title })
-        }
-        setEditQRNameOpen(null)
-        setNewQRName('')
-        setDropdownOpen(null)
-      } else {
-        const error = await response.json() as APIResponse
-        alert(error.error || 'Failed to update QR code name')
+      
+      // Update selected QR if it's the one being edited
+      if (selectedQRCode?.id === qrCodeId) {
+        setSelectedQRCode({ ...selectedQRCode, title: updatedQRCode.title })
       }
+      
+      setEditQRNameOpen(null)
+      setNewQRName('')
+      setDropdownOpen(null)
     } catch (error) {
       console.error('Error updating QR code name:', error)
-      alert('Failed to update QR code name')
-    } finally {
-      setIsLoading(false)
+      alert(error instanceof Error ? error.message : 'Failed to update QR code name')
     }
   }
 

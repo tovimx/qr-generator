@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { QRCode, Link } from '@prisma/client'
-import { useRouter } from 'next/navigation'
+import { Link } from '@prisma/client'
 import LinkEditor from './LinkEditor'
 import LogoUploader from './LogoUploader'
 import LogoShapeControl from './LogoShapeControl'
@@ -13,7 +12,8 @@ import QRCodeWithLogo from './QRCodeWithLogo'
 import QRValidationWarning from './QRValidationWarning'
 import { getQRCodeUrl, getAppBaseUrl } from '@/lib/utils/qr-code'
 import { QRCodeData } from '@/types/qr-code'
-import { APIResponse, DomainListResponse } from '@/types/api'
+import { useDomains } from '@/hooks/use-domains'
+import { useUpdateQRCodeDestination, useUpdateQRCodeLinks, useUpdateQRCodeLogo, useUpdateQRCodeStyle, useUpdateQRCodePreferredDomain } from '@/hooks/use-qr-codes'
 
 interface QRCodeManagerProps {
   qrCode: QRCodeData | null
@@ -22,179 +22,132 @@ interface QRCodeManagerProps {
 export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerProps) {
   const [qrCode, setQrCode] = useState(initialQrCode)
 
+  // TanStack Query hooks
+  const { data: domains = [] } = useDomains()
+  const updateDestinationMutation = useUpdateQRCodeDestination()
+  const updateLinksMutation = useUpdateQRCodeLinks()
+  const updateLogoMutation = useUpdateQRCodeLogo()
+  const updateStyleMutation = useUpdateQRCodeStyle()
+  const updatePreferredDomainMutation = useUpdateQRCodePreferredDomain()
+
+  // Local state
+  const [editingDestination, setEditingDestination] = useState(false)
+  const [redirectType, setRedirectType] = useState<'links' | 'url'>(() => 
+    (initialQrCode?.redirectType as 'links' | 'url') || 'links'
+  )
+  const [redirectUrl, setRedirectUrl] = useState(initialQrCode?.redirectUrl || '')
+  // Use preferred domain from database or fallback to primary domain
+  const getSelectedDomain = () => {
+    if (qrCode?.preferredDomain) {
+      return `https://${qrCode.preferredDomain.hostname}`
+    }
+    // Fallback to primary domain
+    const primary = domains.find(d => d.primary)
+    return primary ? `https://${primary.hostname}` : getAppBaseUrl()
+  }
+  
+  const loading = updateDestinationMutation.isPending || updateLinksMutation.isPending || updateLogoMutation.isPending || updateStyleMutation.isPending
+  const error: string | null = null // Error handling is done by mutations
+
   // Update local state when the prop changes
   useEffect(() => {
     setQrCode(initialQrCode)
-    setRedirectType(initialQrCode?.redirectType || 'links')
+    setRedirectType((initialQrCode?.redirectType as 'links' | 'url') || 'links')
     setRedirectUrl(initialQrCode?.redirectUrl || '')
   }, [initialQrCode])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [editingDestination, setEditingDestination] = useState(false)
-  const [redirectType, setRedirectType] = useState(initialQrCode?.redirectType || 'links')
-  const [redirectUrl, setRedirectUrl] = useState(initialQrCode?.redirectUrl || '')
-  const router = useRouter()
-  const [domains, setDomains] = useState<{ id: string; hostname: string; primary: boolean; verified: boolean }[]>([])
-  const [selectedBaseUrl, setSelectedBaseUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    const loadDomains = async () => {
-      try {
-        const res = await fetch('/api/domains', { cache: 'no-store' })
-        if (res.ok) {
-          const data = await res.json() as DomainListResponse
-          const list = (data.domains || []) as { id: string; hostname: string; primary: boolean; verified: boolean }[]
-          setDomains(list)
-          
-          // Only set selectedBaseUrl if it's not already set
-          if (selectedBaseUrl === null) {
-            const primary = list.find(d => d.primary)
-            if (primary) {
-              setSelectedBaseUrl(`https://${primary.hostname}`)
-            }
-          }
-        }
-      } catch {}
-    }
-    loadDomains()
-  }, [])
   
-  // Reset selectedBaseUrl when switching QR codes
-  useEffect(() => {
-    // Reset to primary domain when switching tabs
-    const primary = domains.find(d => d.primary)
-    if (primary) {
-      setSelectedBaseUrl(`https://${primary.hostname}`)
-    } else {
-      setSelectedBaseUrl(null)
+  // Handler for updating preferred domain
+  const handleUpdatePreferredDomain = async (domainValue: string) => {
+    if (!qrCode) return
+    
+    let preferredDomainId: string | null = null
+    
+    // Parse domain value to get domain ID (if not app base URL)
+    if (domainValue !== getAppBaseUrl()) {
+      const domain = domains.find(d => `https://${d.hostname}` === domainValue)
+      if (domain) {
+        preferredDomainId = domain.id
+      }
     }
-  }, [initialQrCode?.id, domains])
+    
+    try {
+      const updatedQrCode = await updatePreferredDomainMutation.mutateAsync({
+        id: qrCode.id,
+        preferredDomainId
+      })
+      setQrCode(updatedQrCode)
+    } catch (error) {
+      console.error('Failed to update preferred domain:', error)
+    }
+  }
+  
 
 
   const handleUpdateLinks = async (links: Omit<Link, 'id' | 'qrCodeId' | 'createdAt' | 'updatedAt'>[]) => {
     if (!qrCode) return
 
-    setLoading(true)
-    setError(null)
-
     try {
-      const response = await fetch(`/api/qr-codes/${qrCode.id}/links`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ links }),
+      const updatedQrCode = await updateLinksMutation.mutateAsync({
+        id: qrCode.id,
+        links
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update links')
-      }
-
-      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
-      router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
+      console.error('Failed to update links:', err)
+      // Error handling is done by the mutation hook
     }
   }
 
   const handleUpdateDestination = async () => {
     if (!qrCode) return
 
-    setLoading(true)
-    setError(null)
-
     try {
-      const response = await fetch(`/api/qr-codes/${qrCode.id}/destination`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          redirectType,
-          redirectUrl: redirectType === 'url' ? redirectUrl : null 
-        }),
+      const updatedQrCode = await updateDestinationMutation.mutateAsync({
+        id: qrCode.id,
+        redirectType,
+        redirectUrl: redirectType === 'url' ? redirectUrl : null
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update destination')
-      }
-
-      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
-      setRedirectType(updatedQrCode.redirectType)
+      setRedirectType(updatedQrCode.redirectType as 'links' | 'url')
       setRedirectUrl(updatedQrCode.redirectUrl || '')
       setEditingDestination(false)
-      router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
+      console.error('Failed to update destination:', err)
+      // Error handling is done by the mutation hook
     }
   }
 
   const handleLogoUpdate = async (logoUrl: string | null, logoSize: number, logoShape?: string) => {
     if (!qrCode) return
 
-    setLoading(true)
-    setError(null)
-
     try {
-      const response = await fetch(`/api/qr-codes/${qrCode.id}/logo`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ logoUrl, logoSize, logoShape }),
+      const updatedQrCode = await updateLogoMutation.mutateAsync({
+        id: qrCode.id,
+        logoUrl,
+        logoSize,
+        logoShape: logoShape as 'square' | 'circle' || 'square'
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update logo')
-      }
-
-      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
-      router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Failed to update logo:', err)
       throw err // Re-throw to handle in LogoUploader
-    } finally {
-      setLoading(false)
     }
   }
 
-  const handleStyleUpdate = async (cornerRadius?: number, fgColor?: string) => {
+  const handleStyleUpdate = async (cornerRadius?: number, fgColor?: string, bgColor?: string) => {
     if (!qrCode) return
 
-    setLoading(true)
-    setError(null)
-
     try {
-      const response = await fetch(`/api/qr-codes/${qrCode.id}/style`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          ...(cornerRadius !== undefined && { cornerRadius }),
-          ...(fgColor !== undefined && { fgColor })
-        }),
+      const updatedQrCode = await updateStyleMutation.mutateAsync({
+        id: qrCode.id,
+        ...(cornerRadius !== undefined && { cornerRadius }),
+        ...(fgColor !== undefined && { fgColor }),
+        ...(bgColor !== undefined && { bgColor })
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update style')
-      }
-
-      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
-      router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Failed to update style:', err)
       throw err
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -206,7 +159,8 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     )
   }
 
-  const qrCodeUrl = getQRCodeUrl(qrCode.shortCode, selectedBaseUrl ? { host: selectedBaseUrl } : undefined)
+  const selectedDomain = getSelectedDomain()
+  const qrCodeUrl = getQRCodeUrl(qrCode.shortCode, selectedDomain !== getAppBaseUrl() ? { host: selectedDomain } : undefined)
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-qr-id={qrCode.id}>
@@ -221,8 +175,8 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
               <div className="w-full mb-4 flex items-center justify-between">
                 <label className="text-sm text-gray-700">Domain to encode:</label>
                 <select
-                  value={selectedBaseUrl || getAppBaseUrl()}
-                  onChange={(e) => setSelectedBaseUrl(e.target.value)}
+                  value={selectedDomain}
+                  onChange={(e) => handleUpdatePreferredDomain(e.target.value)}
                   className="ml-2 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-900"
                 >
                   <option value={getAppBaseUrl()}>Current origin ({getAppBaseUrl()})</option>
@@ -302,7 +256,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
                       </label>
                       <select
                         value={redirectType}
-                        onChange={(e) => setRedirectType(e.target.value)}
+                        onChange={(e) => setRedirectType(e.target.value as 'links' | 'url')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                       >
                         <option value="links">Link Page (Linktree-style)</option>

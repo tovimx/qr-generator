@@ -35,7 +35,6 @@ export default function SignupPage() {
       // For MVP, we'll auto-confirm users
       // In production, you'd show a "check your email" message
       router.push('/dashboard')
-      router.refresh()
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {

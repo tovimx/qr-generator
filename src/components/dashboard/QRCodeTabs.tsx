@@ -1,57 +1,50 @@
 'use client'
 
 import { useState } from 'react'
-import { User, QRCode, Link } from '@prisma/client'
-import { useRouter } from 'next/navigation'
+import { User } from '@prisma/client'
 import { Plus, X, Edit2, Check, AlertCircle } from 'lucide-react'
-import { APIResponse } from '@/types/api'
 import { QRCodeData } from '@/types/qr-code'
+import { useCreateQRCode, useDeleteQRCode, useUpdateQRCode } from '@/hooks/use-qr-codes'
 
 interface QRCodeTabsProps {
   user: User
   qrCodes: QRCodeData[]
   onQRCodeSelect: (qrCode: QRCodeData) => void
   selectedQRCode: QRCodeData | null
+  projectId?: string // Optional for backward compatibility
 }
 
-export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: QRCodeTabsProps) {
+export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode, projectId }: QRCodeTabsProps) {
+  // TanStack Query mutations
+  const createQRCodeMutation = useCreateQRCode()
+  const deleteQRCodeMutation = useDeleteQRCode()
+  const updateQRCodeMutation = useUpdateQRCode()
+
+  // Local state
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  
+  const loading = createQRCodeMutation.isPending || deleteQRCodeMutation.isPending || updateQRCodeMutation.isPending
+  const error: string | null = null // Error handling is done by mutation hooks
 
   const handleCreateQRCode = async () => {
-    setLoading(true)
-    setError(null)
+    // If no projectId provided, we can't create a QR code in the new architecture
+    if (!projectId) {
+      console.error('Cannot create QR code without projectId')
+      return
+    }
 
     try {
-      const response = await fetch('/api/qr-codes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: `QR Code ${qrCodes.length + 1}`
-        }),
+      const newQrCode = await createQRCodeMutation.mutateAsync({
+        title: `QR Code ${qrCodes.length + 1}`,
+        projectId
       })
-
-      if (!response.ok) {
-        const errorData = await response.json() as APIResponse
-        throw new Error(errorData.error || 'Failed to create QR code')
-      }
-
-      const newQrCode = await response.json() as QRCodeData
       
-      // Auto-select the new QR code immediately with the fresh data
+      // Auto-select the new QR code immediately
       onQRCodeSelect(newQrCode)
-      
-      // Then refresh to get updated data from server
-      router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
+      console.error('Failed to create QR code:', err)
+      // Error handling is done by the mutation hook
     }
   }
 
@@ -60,20 +53,8 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: 
       return
     }
 
-    setLoading(true)
-    setError(null)
-
     try {
-      const response = await fetch(`/api/qr-codes/${qrCodeId}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json() as APIResponse
-        throw new Error(errorData.error || 'Failed to delete QR code')
-      }
-
-      router.refresh()
+      await deleteQRCodeMutation.mutateAsync(qrCodeId)
       
       // If we deleted the selected QR code, select the first remaining one
       if (selectedQRCode?.id === qrCodeId && qrCodes.length > 1) {
@@ -83,9 +64,8 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: 
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
+      console.error('Failed to delete QR code:', err)
+      // Error handling is done by the mutation hook
     }
   }
 
@@ -95,30 +75,17 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: 
       return
     }
 
-    setLoading(true)
-    setError(null)
-
     try {
-      const response = await fetch(`/api/qr-codes/${qrCodeId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title: newTitle.trim() }),
+      await updateQRCodeMutation.mutateAsync({
+        id: qrCodeId,
+        updates: { title: newTitle.trim() }
       })
-
-      if (!response.ok) {
-        const errorData = await response.json() as APIResponse
-        throw new Error(errorData.error || 'Failed to update title')
-      }
 
       setEditingTitle(null)
       setNewTitle('')
-      router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
+      console.error('Failed to update title:', err)
+      // Error handling is done by the mutation hook
     }
   }
 

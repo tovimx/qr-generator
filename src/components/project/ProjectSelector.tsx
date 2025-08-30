@@ -2,21 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { ChevronDown, Plus, FolderOpen, QrCode, TrendingUp, Clock, Edit3, Check, X } from 'lucide-react'
-
-interface Project {
-  id: string
-  name: string
-  isDefault: boolean
-  qrCodeCount: number
-  activeQRCount: number
-  totalScans: number
-  lastActivity: number
-}
+import { ProjectWithStats } from '@/types/qr-code'
 
 interface ProjectSelectorProps {
-  selectedProject: Project | null
-  projects: Project[]
-  onProjectSelect: (project: Project) => void
+  selectedProject: ProjectWithStats | null
+  projects: ProjectWithStats[]
+  onProjectSelect: (project: ProjectWithStats) => void
   onProjectCreate: (name: string) => Promise<void>
   className?: string
 }
@@ -70,7 +61,7 @@ export default function ProjectSelector({
     return 'Just now'
   }
 
-  const getProjectStatus = (project: Project) => {
+  const getProjectStatus = (project: ProjectWithStats) => {
     if (project.qrCodeCount === 0) return { text: 'Empty', color: 'text-gray-500', bgColor: 'bg-gray-100' }
     if (project.activeQRCount === 0) return { text: 'Inactive', color: 'text-amber-600', bgColor: 'bg-amber-100' }
     return { text: 'Active', color: 'text-emerald-600', bgColor: 'bg-emerald-100' }
