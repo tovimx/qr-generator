@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/auth/supabase/server'
 import { prisma } from '@/lib/db/prisma'
 import SimpleProjectDashboard from '@/components/project/SimpleProjectDashboard'
+import QueryProvider from '@/providers/QueryProvider'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -121,10 +122,12 @@ export default async function DashboardPage() {
   }) : []
 
   return (
-    <SimpleProjectDashboard 
-      user={dbUser}
-      initialProjects={projectsWithStats}
-      initialQRCodes={initialQRCodes}
-    />
+    <QueryProvider>
+      <SimpleProjectDashboard 
+        user={dbUser}
+        initialProjects={projectsWithStats}
+        initialQRCodes={initialQRCodes}
+      />
+    </QueryProvider>
   )
 }
