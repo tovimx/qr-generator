@@ -12,20 +12,20 @@ export default async function DashboardPage() {
   
   const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user) {
+  if (!user || !user.email) {
     redirect('/login')
   }
 
   // Get or create user in database
   let dbUser = await prisma.user.findUnique({
-    where: { email: user.email! }
+    where: { email: user.email }
   })
 
   if (!dbUser) {
     dbUser = await prisma.user.create({
       data: {
         id: user.id,
-        email: user.email!,
+        email: user.email,
       }
     })
   }
