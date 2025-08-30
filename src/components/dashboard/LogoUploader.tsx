@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { getSafeLimits } from '@/lib/utils/qr-validation'
+import { APIResponse, LogoUploadResponse } from '@/types/api'
 
 interface LogoUploaderProps {
   qrCodeId: string
@@ -44,11 +45,11 @@ export default function LogoUploader({
       })
       
       if (!response.ok) {
-        const error = await response.json()
+        const error = await response.json() as APIResponse
         throw new Error(error.error || 'Upload failed')
       }
       
-      const { logoUrl } = await response.json()
+      const { logoUrl } = await response.json() as LogoUploadResponse
       
       if (logoUrl) {
         await onLogoUpdate(logoUrl, logoSize)

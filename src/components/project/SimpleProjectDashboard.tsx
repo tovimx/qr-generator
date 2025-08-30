@@ -6,51 +6,14 @@ import { Plus, Search, Grid3X3, List, QrCode, Eye, TrendingUp, MoreHorizontal, E
 import ProjectSelector from './ProjectSelector'
 import QRCodeManager from '../dashboard/QRCodeManager'
 import DomainManager from '../dashboard/DomainManager'
+import { QRCodeData, ProjectWithStats } from '@/types/qr-code'
+import { APIResponse, QRCodeListResponse, ProjectListResponse, QRCodeCreateResponse } from '@/types/api'
 
-interface Project {
-  id: string
-  name: string
-  isDefault: boolean
-  qrCodeCount: number
-  activeQRCount: number
-  totalScans: number
-  lastActivity: number
-}
-
-interface QRCodeData {
-  id: string
-  title: string
-  shortCode: string
-  isActive: boolean
-  position: number
-  redirectType: string
-  redirectUrl?: string | null
-  logoUrl?: string | null
-  logoSize: number
-  logoShape: string
-  cornerRadius: number
-  fgColor: string
-  projectId?: string | null
-  _count: {
-    scans: number
-  }
-  links: Array<{
-    id: string
-    title: string
-    url: string
-    position: number
-    isActive: boolean
-  }>
-  project?: {
-    id: string
-    name: string
-    isDefault: boolean
-  } | null
-}
+// Using unified types from @/types/qr-code and @/types/api
 
 interface SimpleProjectDashboardProps {
   user: User
-  initialProjects: Project[]
+  initialProjects: ProjectWithStats[]
   initialQRCodes: QRCodeData[]
 }
 
@@ -59,8 +22,8 @@ export default function SimpleProjectDashboard({
   initialProjects, 
   initialQRCodes 
 }: SimpleProjectDashboardProps) {
-  const [projects, setProjects] = useState<Project[]>(initialProjects)
-  const [selectedProject, setSelectedProject] = useState<Project | null>(
+  const [projects, setProjects] = useState<ProjectWithStats[]>(initialProjects)
+  const [selectedProject, setSelectedProject] = useState<ProjectWithStats | null>(
     initialProjects.find(p => p.isDefault) || initialProjects[0] || null
   )
   const [qrCodes, setQRCodes] = useState<QRCodeData[]>(initialQRCodes)
@@ -100,11 +63,11 @@ export default function SimpleProjectDashboard({
       setIsLoading(true)
       const response = await fetch('/api/projects')
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json() as ProjectListResponse
         setProjects(data.projects)
         
         if (selectedProject) {
-          const updatedProject = data.projects.find((p: Project) => p.id === selectedProject.id)
+          const updatedProject = data.projects.find((p: ProjectWithStats) => p.id === selectedProject.id)
           if (updatedProject) {
             setSelectedProject(updatedProject)
           }
@@ -122,7 +85,7 @@ export default function SimpleProjectDashboard({
       setIsLoading(true)
       const response = await fetch(`/api/qr-codes?projectId=${projectId}`)
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json() as QRCodeListResponse
         setQRCodes(data.qrCodes)
       }
     } catch (error) {
@@ -132,7 +95,7 @@ export default function SimpleProjectDashboard({
     }
   }
 
-  const handleProjectSelect = async (project: Project) => {
+  const handleProjectSelect = async (project: ProjectWithStats) => {
     setSelectedProject(project)
     setSelectedQRCode(null)
     setSearchQuery('')
@@ -147,11 +110,11 @@ export default function SimpleProjectDashboard({
       })
 
       if (response.ok) {
-        const newProject = await response.json()
+        const newProject = await response.json() as ProjectWithStats
         setProjects([...projects, newProject])
         setSelectedProject(newProject)
       } else {
-        const error = await response.json()
+        const error = await response.json() as APIResponse
         alert(error.error || 'Failed to create project')
       }
     } catch (error) {
@@ -182,14 +145,14 @@ export default function SimpleProjectDashboard({
       })
 
       if (response.ok) {
-        const newQRCode = await response.json()
+        const newQRCode = await response.json() as QRCodeCreateResponse
         setQRCodes([...qrCodes, newQRCode])
         setSelectedQRCode(newQRCode)
         setCreateQRModalOpen(false)
         setCreateQRNameInput('')
         await loadProjects()
       } else {
-        const error = await response.json()
+        const error = await response.json() as APIResponse
         alert(error.error || 'Failed to create QR code')
       }
     } catch (error) {
@@ -220,7 +183,7 @@ export default function SimpleProjectDashboard({
         setDeleteConfirmOpen(null)
         setDropdownOpen(null)
       } else {
-        const error = await response.json()
+        const error = await response.json() as APIResponse
         alert(error.error || 'Failed to delete QR code')
       }
     } catch (error) {
@@ -243,7 +206,7 @@ export default function SimpleProjectDashboard({
       })
 
       if (response.ok) {
-        const updatedQRCode = await response.json()
+        const updatedQRCode = await response.json() as QRCodeData
         // Update local state
         setQRCodes(qrCodes.map(qr => 
           qr.id === qrCodeId ? { ...qr, title: updatedQRCode.title } : qr
@@ -256,7 +219,7 @@ export default function SimpleProjectDashboard({
         setNewQRName('')
         setDropdownOpen(null)
       } else {
-        const error = await response.json()
+        const error = await response.json() as APIResponse
         alert(error.error || 'Failed to update QR code name')
       }
     } catch (error) {
@@ -442,7 +405,6 @@ export default function SimpleProjectDashboard({
               </div>
             </div>
             <div className="p-6">
-              {/* @ts-expect-error - Type compatibility will be fixed later */}
               <QRCodeManager qrCode={selectedQRCode} />
             </div>
           </div>

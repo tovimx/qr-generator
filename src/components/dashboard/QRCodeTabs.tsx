@@ -4,19 +4,14 @@ import { useState } from 'react'
 import { User, QRCode, Link } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { Plus, X, Edit2, Check, AlertCircle } from 'lucide-react'
-
-interface QRCodeWithRelations extends QRCode {
-  links: Link[]
-  _count: {
-    scans: number
-  }
-}
+import { APIResponse } from '@/types/api'
+import { QRCodeData } from '@/types/qr-code'
 
 interface QRCodeTabsProps {
   user: User
-  qrCodes: QRCodeWithRelations[]
-  onQRCodeSelect: (qrCode: QRCodeWithRelations) => void
-  selectedQRCode: QRCodeWithRelations | null
+  qrCodes: QRCodeData[]
+  onQRCodeSelect: (qrCode: QRCodeData) => void
+  selectedQRCode: QRCodeData | null
 }
 
 export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: QRCodeTabsProps) {
@@ -42,11 +37,11 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: 
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json() as APIResponse
         throw new Error(errorData.error || 'Failed to create QR code')
       }
 
-      const newQrCode = await response.json()
+      const newQrCode = await response.json() as QRCodeData
       
       // Auto-select the new QR code immediately with the fresh data
       onQRCodeSelect(newQrCode)
@@ -74,7 +69,7 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: 
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json() as APIResponse
         throw new Error(errorData.error || 'Failed to delete QR code')
       }
 
@@ -113,7 +108,7 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: 
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json() as APIResponse
         throw new Error(errorData.error || 'Failed to update title')
       }
 
@@ -127,7 +122,7 @@ export default function QRCodeTabs({ qrCodes, onQRCodeSelect, selectedQRCode }: 
     }
   }
 
-  const startEditingTitle = (qrCode: QRCodeWithRelations) => {
+  const startEditingTitle = (qrCode: QRCodeData) => {
     setEditingTitle(qrCode.id)
     setNewTitle(qrCode.title)
   }

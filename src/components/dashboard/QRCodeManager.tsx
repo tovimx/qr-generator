@@ -12,16 +12,11 @@ import QRCodeExporter from './QRCodeExporter'
 import QRCodeWithLogo from './QRCodeWithLogo'
 import QRValidationWarning from './QRValidationWarning'
 import { getQRCodeUrl, getAppBaseUrl } from '@/lib/utils/qr-code'
-
-interface QRCodeWithRelations extends QRCode {
-  links: Link[]
-  _count: {
-    scans: number
-  }
-}
+import { QRCodeData } from '@/types/qr-code'
+import { APIResponse, DomainListResponse } from '@/types/api'
 
 interface QRCodeManagerProps {
-  qrCode: QRCodeWithRelations | null
+  qrCode: QRCodeData | null
 }
 
 export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerProps) {
@@ -47,7 +42,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
       try {
         const res = await fetch('/api/domains', { cache: 'no-store' })
         if (res.ok) {
-          const data = await res.json()
+          const data = await res.json() as DomainListResponse
           const list = (data.domains || []) as { id: string; hostname: string; primary: boolean; verified: boolean }[]
           setDomains(list)
           
@@ -73,7 +68,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
     } else {
       setSelectedBaseUrl(null)
     }
-  }, [initialQrCode?.id])
+  }, [initialQrCode?.id, domains])
 
 
   const handleUpdateLinks = async (links: Omit<Link, 'id' | 'qrCodeId' | 'createdAt' | 'updatedAt'>[]) => {
@@ -95,7 +90,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         throw new Error('Failed to update links')
       }
 
-      const updatedQrCode = await response.json()
+      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
       router.refresh()
     } catch (err) {
@@ -127,7 +122,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         throw new Error('Failed to update destination')
       }
 
-      const updatedQrCode = await response.json()
+      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
       setRedirectType(updatedQrCode.redirectType)
       setRedirectUrl(updatedQrCode.redirectUrl || '')
@@ -159,7 +154,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         throw new Error('Failed to update logo')
       }
 
-      const updatedQrCode = await response.json()
+      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
       router.refresh()
     } catch (err) {
@@ -192,7 +187,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         throw new Error('Failed to update style')
       }
 
-      const updatedQrCode = await response.json()
+      const updatedQrCode = await response.json() as QRCodeData
       setQrCode(updatedQrCode)
       router.refresh()
     } catch (err) {

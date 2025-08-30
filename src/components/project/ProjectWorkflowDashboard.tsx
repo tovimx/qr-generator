@@ -2,37 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { QrCode, TrendingUp, Eye, Edit3, ExternalLink, MoreHorizontal, Plus } from 'lucide-react'
+import { QRCodeData } from '@/types/qr-code'
 
-interface QRCodeData {
-  id: string
-  title: string
-  shortCode: string
-  isActive: boolean
-  position: number
-  redirectType: string
-  redirectUrl?: string | null
-  logoUrl?: string | null
-  logoSize: number
-  logoShape: string
-  cornerRadius: number
-  fgColor: string
-  projectId?: string | null
-  _count: {
-    scans: number
-  }
-  links: Array<{
-    id: string
-    title: string
-    url: string
-    position: number
-    isActive: boolean
-  }>
-  project?: {
-    id: string
-    name: string
-    isDefault: boolean
-  } | null
-}
+// Using unified types from @/types/qr-code
 
 interface WorkflowStage {
   id: string

@@ -25,7 +25,7 @@ export async function GET() {
     }
     
     // Check if bucket already exists
-    const bucketExists = buckets?.some(b => b.name === LOGO_BUCKET)
+    const bucketExists = buckets?.some((b: { name: string }) => b.name === LOGO_BUCKET)
     
     if (bucketExists) {
       return NextResponse.json({ 

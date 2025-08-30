@@ -112,13 +112,7 @@ export default async function DashboardPage() {
       links: {
         orderBy: { position: 'asc' }
       },
-      project: {
-        select: {
-          id: true,
-          name: true,
-          isDefault: true
-        }
-      },
+      project: true,
       _count: {
         select: { scans: true }
       }

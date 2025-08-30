@@ -168,10 +168,28 @@ export function validateQRScannability(config: QRConfiguration): QRValidationRes
   }
 }
 
+export interface SafeLimits {
+  logoSize: {
+    optimal: number
+    maximum: number
+    critical: number
+  }
+  cornerRadius: {
+    optimal: number
+    maximum: number
+    critical: number
+  }
+  contrast: {
+    minimum: number
+    good: number
+    excellent: number
+  }
+}
+
 /**
  * Get recommended safe limits
  */
-export function getSafeLimits() {
+export function getSafeLimits(): SafeLimits {
   return {
     logoSize: {
       optimal: 20,
@@ -183,10 +201,10 @@ export function getSafeLimits() {
       maximum: 5, // 25% rounding
       critical: 8  // 40% rounding
     },
-    colorContrast: {
-      optimal: 7,
-      minimum: 4.5,
-      critical: 3
+    contrast: {
+      excellent: 7,
+      good: 4.5,
+      minimum: 3
     }
   }
 }

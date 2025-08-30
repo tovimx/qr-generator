@@ -80,13 +80,13 @@ export async function deleteLogo(logoUrl: string): Promise<boolean> {
   return true
 }
 
-export async function createLogoBucketIfNotExists() {
+export async function createLogoBucketIfNotExists(): Promise<boolean> {
   const supabase = createClient()
   
   // Check if bucket exists
   const { data: buckets } = await supabase.storage.listBuckets()
   
-  if (buckets?.some(b => b.name === LOGO_BUCKET)) {
+  if (buckets?.some((b: { name: string }) => b.name === LOGO_BUCKET)) {
     return true
   }
   
