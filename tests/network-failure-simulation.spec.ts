@@ -303,10 +303,8 @@ test.describe('Network Failure Simulation', () => {
     });
     
     test('should handle intermittent connectivity', async ({ page }) => {
-      let isOnline = true;
-      
       // Toggle network every few requests
-      await page.route('**/*', async (route, request) => {
+      await page.route('**/*', async (route) => {
         if (Math.random() < 0.3) { // 30% chance of network failure
           await route.abort('failed');
         } else {
@@ -321,7 +319,7 @@ test.describe('Network Failure Simulation', () => {
         try {
           await page.goto(pagePath, { timeout: 10000 });
           await page.waitForTimeout(1000);
-        } catch (error) {
+        } catch {
           // Some requests might fail, that's expected
         }
       }
