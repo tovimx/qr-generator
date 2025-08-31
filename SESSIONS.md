@@ -150,6 +150,112 @@
 
 ---
 
+## Session: 2025-08-31 - Critical Bug Resolution & Toast Notifications
+
+**Previous context**: TanStack Query migration completed but introduced critical authentication regressions causing all API operations to fail. Project creation appeared broken due to lack of user feedback.
+
+**Today's goal**:
+- [x] Investigate and resolve critical authentication failures in API routes
+- [x] Implement comprehensive toast notification system for user feedback
+- [x] Fix project creation and all QR code operations 
+- [x] Remove broken project editing functionality
+- [x] Clean up UI/UX issues and form submission problems
+
+**Implementation notes**:
+- **Critical Authentication Fix**:
+  - Identified inconsistent auth patterns across API endpoints after TanStack Query migration
+  - Main routes used `userId: user.id` while specialized routes used `qrCode.user.email !== user.email`
+  - Fixed authentication in `/destination`, `/style`, `/logo`, `/links` API routes
+  - All operations now work consistently with proper userId-based authentication
+- **Toast Notification System**:
+  - Installed and configured react-hot-toast with branded styling
+  - Created `src/lib/toast.ts` utility with success/error/warning/info variants
+  - Added global Toaster component to root layout
+  - Implemented comprehensive feedback across all operations:
+    * Project creation/selection success/error states
+    * QR code CRUD operations (create, update, delete)
+    * QR code customization (style, logo, links, domain preferences)
+    * Export functionality success/error feedback
+  - Replaced 25+ console.error/alert statements with proper UX feedback
+- **UI/UX Improvements**:
+  - Fixed "Set Primary" button visibility in domains section (text contrast issue)
+  - Removed broken project editing functionality and pencil button completely
+  - Fixed form submission issues with proper event handling architecture
+  - Replaced hacky stopPropagation with intelligent outside-click detection
+  - Improved TanStack Query cache invalidation patterns for project operations
+
+**Blockers/Issues**:
+- **Major Authentication Regression**: All QR code operations failing with 500 errors
+  - Root cause: Inconsistent authentication patterns introduced during TanStack Query refactoring
+  - Email-based auth checking `qrCode.user.email !== user.email` instead of `userId: user.id`
+- **Form Submission Issues**: "Form submission canceled because form is not connected"
+  - Root cause: Global `stopPropagation()` preventing form events from bubbling properly
+  - Event handling conflicts between dropdown management and form submission
+- **Missing User Feedback**: Project creation working but appearing broken due to no visual feedback
+  - Users saw no toast notifications for success/error states
+  - Console errors were hidden from end users
+
+**Completed**:
+- [x] **Authentication System Restored**: All API routes now use consistent userId-based authentication
+- [x] **Toast Notification System**: Comprehensive user feedback implemented across entire application
+- [x] **Project Operations**: Creation, selection, and management fully functional with proper feedback
+- [x] **QR Code Operations**: All CRUD operations working (create, update, style, logo, links, delete)
+- [x] **Form Submissions**: Fixed event handling architecture for proper form submission
+- [x] **UI Polish**: Domain button visibility, removed broken editing features, cleaned debug logs
+- [x] **TanStack Query Optimization**: Improved cache invalidation and query key consistency
+
+**Next session focus**:
+1. **Project Management Enhancements**
+   - Add project renaming functionality (properly implemented)
+   - Project deletion with safeguards
+   - Project duplication/cloning
+   - Bulk project operations
+
+2. **Advanced QR Features**
+   - QR code templates and presets
+   - Advanced styling options (gradients, patterns)
+   - Bulk QR code operations
+   - QR code analytics dashboard improvements
+
+3. **Domain Verification (Phase 2)**
+   - Complete domain verification workflow with DNS/HTTP challenges
+   - Automated SSL provisioning integration
+   - Host-scoped queries for multi-tenant routing
+   - Analytics enrichment with domain tracking
+
+4. **Performance & UX**
+   - Implement drag-and-drop QR code reordering
+   - Add QR code search/filtering capabilities
+   - Keyboard shortcuts for power users
+   - Mobile responsiveness improvements
+
+**Key Technical Decisions**:
+- **Authentication Strategy**: Standardized on userId-based auth across all API routes
+- **User Feedback**: Chose react-hot-toast for comprehensive notification system
+- **Event Handling**: Implemented surgical event management instead of global propagation blocking
+- **State Management**: TanStack Query provides reliable cache management and optimistic updates
+
+**Root Cause Analysis**:
+The critical regression was introduced during the TanStack Query migration when new API endpoints were created with inconsistent authentication patterns. The original routes used the correct `userId: user.id` pattern, but specialized routes copied from older examples used the broken email-based checking pattern.
+
+**Architectural Lessons**:
+- **Consistency**: Authentication patterns must be standardized across all API routes
+- **User Feedback**: Essential for operations that don't provide immediate visual changes
+- **Event Management**: Global event blocking should be avoided; use targeted event handling
+- **Testing**: API authentication should be tested across all endpoints after migrations
+
+**Commands used**:
+- `npm install react-hot-toast` - Toast notification system
+- `npm run checkerrors` - TypeScript and ESLint validation
+- `npm run build` - Production build verification
+- `git add . && git commit` - Staged commits with proper messages
+
+**Commits Created**:
+1. `6d0eabc` - "feat: implement comprehensive toast notification system"
+2. `0d6be17` - "fix: resolve critical authentication and UI regressions"
+
+---
+
 ## Session: 2025-08-16 - Multi-QR Dashboard Implementation
 
 **Previous context**: Application supported only single QR code per user. Need to implement tabs-based dashboard allowing multiple QR codes per user with full CRUD functionality.

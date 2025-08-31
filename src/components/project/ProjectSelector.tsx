@@ -50,7 +50,7 @@ export default function ProjectSelector({
         setNewProjectName('')
         setIsCreating(false)
         setIsOpen(false)
-      } catch (error) {
+      } catch {
         // Error handling is done in parent component (SimpleProjectDashboard)
         // Don't close the form on error so user can try again
       }

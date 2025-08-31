@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { User } from '@prisma/client'
-import { Plus, Search, Grid3X3, List, QrCode, Eye, TrendingUp, MoreHorizontal, ExternalLink, Trash2, Edit, Settings } from 'lucide-react'
+import { Plus, Search, Grid3X3, List, QrCode, Eye, TrendingUp, MoreHorizontal, ExternalLink, Trash2, Edit, Settings, Palette } from 'lucide-react'
 import ProjectSelector from './ProjectSelector'
 import QRCodeManager from '../dashboard/QRCodeManager'
 import DomainManager from '../dashboard/DomainManager'
+import { DesignPanel } from '../dashboard/DesignPanel'
 import { QRCodeData, ProjectWithStats } from '@/types/qr-code'
 import { useProjects, useCreateProject } from '@/hooks/use-projects'
 import { useQRCodes, useCreateQRCode, useDeleteQRCode, useUpdateQRCode } from '@/hooks/use-qr-codes'
@@ -57,7 +58,7 @@ export default function SimpleProjectDashboard({
   const [newQRName, setNewQRName] = useState('')
   const [createQRModalOpen, setCreateQRModalOpen] = useState(false)
   const [createQRNameInput, setCreateQRNameInput] = useState('')
-  const [activeTab, setActiveTab] = useState<'qr-codes' | 'domains'>('qr-codes')
+  const [activeTab, setActiveTab] = useState<'qr-codes' | 'domains' | 'design'>('qr-codes')
 
   // Update selected project when projects change
   useEffect(() => {
@@ -301,7 +302,7 @@ export default function SimpleProjectDashboard({
     )
   }
 
-  if (selectedQRCode) {
+  if (selectedQRCode && activeTab === 'qr-codes') {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -438,6 +439,17 @@ export default function SimpleProjectDashboard({
             >
               <Settings className="w-4 h-4" />
               <span>Domains</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('design')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-colors ${
+                activeTab === 'design'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Palette className="w-4 h-4" />
+              <span>Design</span>
             </button>
           </div>
         </div>
@@ -584,6 +596,86 @@ export default function SimpleProjectDashboard({
         {activeTab === 'domains' && (
           <div className="mt-8">
             <DomainManager />
+          </div>
+        )}
+
+        {/* Design Content */}
+        {activeTab === 'design' && selectedQRCode && (
+          <div className="mt-8">
+            <DesignPanel 
+              qrCodeId={(selectedQRCode as QRCodeData).id}
+              qrTitle={(selectedQRCode as QRCodeData).title}
+              shortCode={(selectedQRCode as QRCodeData).shortCode}
+              preferredDomain={(selectedQRCode as QRCodeData).preferredDomain}
+              links={(selectedQRCode as QRCodeData).links}
+            />
+          </div>
+        )}
+
+        {/* Design Content - No QR Code Selected */}
+        {activeTab === 'design' && !selectedQRCode && qrCodes.length > 0 && (
+          <div className="mt-8">
+            <div className="text-center py-8 mb-8">
+              <Palette className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a QR Code to Customize</h3>
+              <p className="text-gray-500 max-w-md mx-auto mb-6">
+                Choose a QR code from your collection to customize its appearance with themes, colors, and styling options.
+              </p>
+            </div>
+
+            {/* QR Code Grid for Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {qrCodes.map((qrCode) => (
+                <div
+                  key={qrCode.id}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setSelectedQRCode(qrCode)
+                    // Ensure we stay on design tab
+                    setActiveTab('design')
+                  }}
+                  className="bg-white rounded-lg border-2 border-gray-200 hover:border-indigo-500 p-6 cursor-pointer transition-colors group"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-medium text-gray-900 truncate">{qrCode.title}</h4>
+                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                      {qrCode._count.scans} scans
+                    </span>
+                  </div>
+                  
+                  <div className="text-sm text-gray-500 mb-4">
+                    {qrCode.links.length} {qrCode.links.length === 1 ? 'link' : 'links'}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">
+                      Updated {new Date(qrCode.updatedAt).toLocaleDateString()}
+                    </span>
+                    <div className="text-indigo-600 group-hover:text-indigo-700">
+                      <Palette className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Design Content - No QR Codes Exist */}
+        {activeTab === 'design' && qrCodes.length === 0 && (
+          <div className="mt-8 text-center py-12">
+            <Palette className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No QR Codes Found</h3>
+            <p className="text-gray-500 max-w-md mx-auto mb-6">
+              Create your first QR code to start customizing its appearance with themes and colors.
+            </p>
+            <button
+              onClick={() => setActiveTab('qr-codes')}
+              className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+            >
+              Create Your First QR Code
+            </button>
           </div>
         )}
       </main>

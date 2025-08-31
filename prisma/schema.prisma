@@ -11,11 +11,12 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  qrCodes   QRCode[]
+  id           String        @id @default(uuid())
+  email        String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  qrCodes      QRCode[]
+  customThemes CustomTheme[]
   // Each user owns a single Client (tenant) in this initial design via Client.ownerUserId
 
   @@map("users")
@@ -81,6 +82,22 @@ model QRCode {
   logoShape    String    @default("square")
   cornerRadius Int       @default(0)
   fgColor      String    @default("#000000")
+  // Custom Design Fields
+  themeId      String    @default("default")
+  primaryColor String    @default("#6366f1")
+  secondaryColor String  @default("#8b5cf6")
+  backgroundType String  @default("gradient")
+  backgroundValue String?
+  buttonStyle  String    @default("rounded")
+  cardStyle    String    @default("floating")
+  fontFamily   String    @default("inter")
+  customCss    String?
+  avatarUrl    String?
+  avatarStyle  String    @default("circle")
+  description  String?
+  socialLinks  Json?
+  customTitle  String?
+  showTitle    Boolean   @default(true)
   links        Link[]
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   scans        Scan[]
@@ -128,4 +145,32 @@ model Scan {
 
   @@index([qrCodeId, createdAt])
   @@map("scans")
+}
+
+model CustomTheme {
+  id              String    @id @default(uuid())
+  name            String
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Theme settings (matching DesignSettings interface)
+  themeId         String    @default("custom")
+  primaryColor    String
+  secondaryColor  String
+  backgroundType  String
+  backgroundValue String?
+  buttonStyle     String
+  cardStyle       String    @default("floating")
+  fontFamily      String
+  customCss       String?
+  avatarUrl       String?
+  avatarStyle     String    @default("circle")
+  description     String?
+  socialLinks     Json?
+  customTitle     String?
+  showTitle       Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, name])
+  @@map("custom_themes")
 }

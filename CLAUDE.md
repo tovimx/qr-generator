@@ -657,6 +657,21 @@ npx prisma migrate dev
 npx prisma migrate reset
 ```
 
+#### **🚨 CRITICAL: Dev Server Restart Protocol**
+
+**MANDATORY**: After any database schema changes, Prisma operations, or client generation, you **MUST** restart the development server to avoid "Unknown argument" errors.
+
+**When to restart `npm run dev:full`:**
+- ✅ After `npx prisma db push`
+- ✅ After `npx prisma migrate dev`  
+- ✅ After `npx prisma generate`
+- ✅ After adding/modifying Prisma schema fields
+- ✅ After any database model changes
+
+**Why**: The running dev server uses a cached Prisma client. Schema changes require a fresh Prisma client generation, which only takes effect after server restart.
+
+**ALWAYS tell the user**: "Now restart your dev server with `npm run dev:full` to pick up the new Prisma client."
+
 #### **Backfill Scripts (After Migrations):**
 
 ```bash
@@ -754,6 +769,127 @@ When implementing features for this project:
 2. **ALL inputs MUST have dark text color** for proper contrast (now handled in global CSS)
 3. **Placeholders should be gray-500** for visibility
 4. **Focus states must be accessible** with proper outline
+5. **ALL modals MUST follow the established blur backdrop pattern** (see Modal Standards below)
+
+#### **Modal Standards:**
+
+**MANDATORY**: All modals/dialogs must use the consistent blur backdrop pattern for visual cohesion.
+
+**Required Modal Pattern:**
+```tsx
+{/* Modal/Dialog */}
+{showModal && (
+  <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl max-w-md w-full mx-4 p-6">
+      {/* Modal content */}
+    </div>
+  </div>
+)}
+```
+
+**Key Requirements:**
+- ✅ `bg-black/20` - Semi-transparent dark overlay (NOT `bg-black bg-opacity-50`)
+- ✅ `backdrop-blur-sm` - Blur effect that shows app content behind
+- ✅ `rounded-xl` - Consistent rounded corners (NOT `rounded-lg`)
+- ✅ `mx-4` - Horizontal margin for mobile responsiveness
+- ✅ `z-50` - Proper stacking order
+
+**Examples in codebase:**
+- Delete confirmation modals in `SimpleProjectDashboard.tsx`
+- Custom theme save modal in `DesignPanel.tsx`
+
+#### **🔄 Design Fields Synchronization (CRITICAL)**
+
+**PROBLEM**: Adding new design fields requires updating multiple files manually, leading to sync issues between live pages, APIs, and preview components.
+
+**SOLUTION**: Centralized design field configuration ensures automatic synchronization.
+
+**MANDATORY**: Always use the centralized design utilities instead of manual field mapping.
+
+```tsx
+// ❌ NEVER DO THIS - Manual field mapping
+const designSettings: DesignSettings = {
+  themeId: qrCode.themeId || 'default',
+  primaryColor: qrCode.primaryColor || '#6366f1',
+  // ... manually listing all fields
+}
+
+// ✅ ALWAYS DO THIS - Use centralized utility
+import { mapQRCodeToDesignSettings, getDesignFieldsSelect } from '@/lib/design/fields'
+
+// For database queries
+const qrCode = await prisma.qRCode.findUnique({
+  select: {
+    id: true,
+    title: true,
+    ...getDesignFieldsSelect(), // Automatically includes all design fields
+  }
+})
+
+// For mapping database to DesignSettings
+const designSettings = mapQRCodeToDesignSettings(qrCode)
+```
+
+**Key Benefits:**
+- ✅ **Automatic sync**: New design fields are automatically available everywhere
+- ✅ **Type safety**: Compile-time checks ensure no fields are missed
+- ✅ **Centralized validation**: Single source of truth for field validation
+- ✅ **Zero maintenance**: No need to update multiple files when adding fields
+
+**Files that use centralized design utilities:**
+- `/src/lib/design/fields.ts` - Central configuration
+- `/src/app/(public)/q/[shortCode]/page.tsx` - Live page
+- `/src/app/api/qr-codes/[id]/design/route.ts` - Design API
+- `/src/app/api/custom-themes/route.ts` - Custom themes API
+
+#### **🖼️ Avatar Style System**
+
+**Feature**: Users can choose between two avatar display styles for their QR code pages.
+
+**Avatar Styles Available:**
+1. **Circle** (default): Traditional rounded avatar with shadow, positioned inside the card
+2. **Banner**: Full-width rectangular image (4:1 aspect ratio) positioned above the card content
+
+**Implementation:**
+- Added `avatarStyle?: 'circle' | 'banner'` to `DesignSettings` interface
+- Database field: `avatarStyle` with default `'circle'`
+- UI: Avatar Style selector in Design Customizer → Layout tab
+- Renderer: Conditional avatar positioning in `ThemeRenderer`
+
+**Usage in DesignCustomizer:**
+```tsx
+// Located in Layout tab after Avatar URL field
+<div>
+  <label>Avatar Style</label>
+  <div className="grid grid-cols-2 gap-2">
+    <button onClick={() => onChange({ avatarStyle: 'circle' })}>
+      Circle
+      <p>Round avatar with shadow</p>
+    </button>
+    <button onClick={() => onChange({ avatarStyle: 'banner' })}>
+      Banner  
+      <p>Full-width image banner</p>
+    </button>
+  </div>
+</div>
+```
+
+**Rendering Logic:**
+```tsx
+// Banner avatar - positioned outside card
+{avatarUrl && design.avatarStyle === 'banner' && (
+  <div className="max-w-md mx-auto mb-8">
+    <img src={avatarUrl} className="w-full h-24 object-cover rounded-lg shadow-lg" />
+  </div>
+)}
+
+// Circle avatar - positioned inside card  
+{avatarUrl && (design.avatarStyle || 'circle') === 'circle' && (
+  <div className="flex justify-center mb-6">
+    <img src={avatarUrl} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg" />
+  </div>
+)}
+```
 
 #### **Global Styles Applied:**
 

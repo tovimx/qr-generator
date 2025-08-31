@@ -14,6 +14,7 @@ export interface QRCodeData extends QRCode {
     primary: boolean
     verified: boolean
   } | null
+  // Design fields are already included from QRCode model
 }
 
 // For components that need the relations interface
