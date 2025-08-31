@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page, Route } from '@playwright/test';
 
 /**
  * Comprehensive Mock-Based E2E Tests
@@ -387,9 +387,9 @@ test.describe('QR Code Generator - Mock-Based E2E Tests', () => {
 /**
  * Helper function to set up comprehensive API mocks
  */
-async function setupAPIMocks(page: any) {
+async function setupAPIMocks(page: Page) {
   // Mock authentication endpoints
-  await page.route('**/auth/**', async (route: any) => {
+  await page.route('**/auth/**', async (route: Route) => {
     const url = route.request().url();
     const method = route.request().method();
     
@@ -417,7 +417,7 @@ async function setupAPIMocks(page: any) {
   });
   
   // Mock API endpoints
-  await page.route('**/api/**', async (route: any) => {
+  await page.route('**/api/**', async (route: Route) => {
     const url = route.request().url();
     const method = route.request().method();
     
@@ -466,7 +466,7 @@ async function setupAPIMocks(page: any) {
   });
 
   // Mock QR code public pages
-  await page.route('**/q/**', async (route: any) => {
+  await page.route('**/q/**', async (route: Route) => {
     await route.fulfill({
       status: 200,
       contentType: 'text/html',
@@ -487,7 +487,7 @@ async function setupAPIMocks(page: any) {
 /**
  * Helper function to mock an authenticated user
  */
-async function mockAuthenticatedUser(page: any) {
+async function mockAuthenticatedUser(page: Page) {
   await page.addInitScript(() => {
     // Mock localStorage auth state
     localStorage.setItem('sb-test-auth-token', JSON.stringify({
@@ -499,7 +499,7 @@ async function mockAuthenticatedUser(page: any) {
     }));
     
     // Mock global auth state
-    (window as any).__mockAuth = {
+    (window as Window & typeof globalThis & { __mockAuth?: unknown }).__mockAuth = {
       user: { id: 'user-123', email: 'test@example.com' },
       authenticated: true
     };
