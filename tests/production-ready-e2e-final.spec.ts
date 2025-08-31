@@ -98,7 +98,7 @@ test.describe('QR Generator - Production Ready E2E Tests', () => {
 
       // Verify page content loads
       const signupContent = await page.textContent('body');
-      expect(signupContent).toContain('Sign up' || 'Create account' || 'Register');
+      expect(signupContent && (signupContent.includes('Sign up') || signupContent.includes('Create account') || signupContent.includes('Register'))).toBeTruthy();
       console.log('✅ Page content loads correctly');
     });
 
@@ -169,14 +169,14 @@ test.describe('QR Generator - Production Ready E2E Tests', () => {
       await page.setViewportSize({ width: 1200, height: 800 });
       await page.goto('/login');
       
-      let desktopContent = await page.textContent('body');
+      const desktopContent = await page.textContent('body');
       expect(desktopContent).toBeTruthy();
 
       // Test mobile viewport
       await page.setViewportSize({ width: 375, height: 667 });
       await page.reload();
       
-      let mobileContent = await page.textContent('body');
+      const mobileContent = await page.textContent('body');
       expect(mobileContent).toBeTruthy();
       
       // Content should adapt to different viewports
@@ -233,7 +233,7 @@ test.describe('Test Infrastructure Validation', () => {
     expect(page).toBeDefined();
     
     const userAgent = await page.evaluate(() => navigator.userAgent);
-    expect(userAgent).toContain('Chrome' || 'Firefox' || 'Safari');
+    expect(userAgent.includes('Chrome') || userAgent.includes('Firefox') || userAgent.includes('Safari')).toBeTruthy();
     
     console.log(`✅ Test environment: ${userAgent}`);
     console.log('✅ Test infrastructure validated');

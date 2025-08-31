@@ -19,7 +19,7 @@ export interface MockQRCode {
   userId: string;
   createdAt: string;
   links: MockLink[];
-  theme?: any;
+  theme?: Record<string, unknown>;
 }
 
 export interface MockLink {

@@ -22,8 +22,8 @@ test.describe('Auth Bypass Test', () => {
     // Add script to check environment variables
     const envVars = await page.evaluate(() => {
       return {
-        nodeEnv: (window as any).process?.env?.NODE_ENV,
-        disableAuth: (window as any).process?.env?.DISABLE_AUTH_FOR_TESTING,
+        nodeEnv: (window as unknown as { process?: { env?: { NODE_ENV?: string } } })?.process?.env?.NODE_ENV,
+        disableAuth: (window as unknown as { process?: { env?: { DISABLE_AUTH_FOR_TESTING?: string } } })?.process?.env?.DISABLE_AUTH_FOR_TESTING,
       };
     });
     

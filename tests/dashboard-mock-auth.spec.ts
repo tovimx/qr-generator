@@ -169,7 +169,7 @@ async function setupComprehensiveAuthMocks(page: Page) {
     }));
 
     // Mock any global auth state the app might check
-    (window as unknown as Record<string, unknown>).__authUser = {
+    (window as unknown as Record<string, unknown>)['__authUser'] = {
       id: 'test-user-123',
       email: 'test@example.com'
     };
