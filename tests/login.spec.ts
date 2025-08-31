@@ -58,7 +58,7 @@ test.describe('Login Page', () => {
 
     // Wait for error message to appear
     await expect(page.locator('.bg-red-50')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('.text-red-800')).toContainText(/Failed to fetch|Invalid|incorrect|wrong/i);
+    await expect(page.locator('.text-red-800')).toContainText(/Failed to fetch|Invalid|incorrect|wrong|NetworkError|Load failed/i);
 
     // Button should return to normal state
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
