@@ -225,10 +225,11 @@ test.describe('Performance and Load Tests', () => {
     
     // Measure initial memory usage
     const initialMemory = await page.evaluate(() => {
-      return (performance as any).memory ? {
-        usedJSMemory: (performance as any).memory.usedJSMemory,
-        totalJSMemory: (performance as any).memory.totalJSMemory,
-        jsMemoryLimit: (performance as any).memory.jsMemoryLimit
+      const perfWithMemory = performance as unknown as { memory?: { usedJSMemory: number; totalJSMemory: number; jsMemoryLimit: number } };
+      return perfWithMemory.memory ? {
+        usedJSMemory: perfWithMemory.memory.usedJSMemory,
+        totalJSMemory: perfWithMemory.memory.totalJSMemory,
+        jsMemoryLimit: perfWithMemory.memory.jsMemoryLimit
       } : null;
     });
     
@@ -274,10 +275,11 @@ test.describe('Performance and Load Tests', () => {
     
     // Measure final memory usage
     const finalMemory = await page.evaluate(() => {
-      return (performance as any).memory ? {
-        usedJSMemory: (performance as any).memory.usedJSMemory,
-        totalJSMemory: (performance as any).memory.totalJSMemory,
-        jsMemoryLimit: (performance as any).memory.jsMemoryLimit
+      const perfWithMemory = performance as unknown as { memory?: { usedJSMemory: number; totalJSMemory: number; jsMemoryLimit: number } };
+      return perfWithMemory.memory ? {
+        usedJSMemory: perfWithMemory.memory.usedJSMemory,
+        totalJSMemory: perfWithMemory.memory.totalJSMemory,
+        jsMemoryLimit: perfWithMemory.memory.jsMemoryLimit
       } : null;
     });
     

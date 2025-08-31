@@ -4,8 +4,11 @@ import { cookies } from 'next/headers'
 export async function createClient(): Promise<ReturnType<typeof createServerClient>> {
   const cookieStore = await cookies()
 
-  const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']!
-  const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!
+  // For testing environment, use mock values
+  const isTestEnv = process.env.NODE_ENV === 'test' || process.env['DISABLE_AUTH_FOR_TESTING'] === 'true';
+  
+  const supabaseUrl = isTestEnv ? 'https://test.supabase.co' : process.env['NEXT_PUBLIC_SUPABASE_URL']!
+  const supabaseAnonKey = isTestEnv ? 'test-anon-key' : process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(

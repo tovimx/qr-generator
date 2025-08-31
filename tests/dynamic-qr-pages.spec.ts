@@ -4,8 +4,8 @@ import { createTestUser, createTestQRCode, addLinksToQRCode, simulateScan, getQR
 
 test.describe('Dynamic QR Pages Tests', () => {
   let testEmail: string;
-  let testUser: any;
-  let qrCode: any;
+  let testUser: unknown;
+  let qrCode: unknown;
   const testPassword = 'Test123!@#';
 
   test.beforeEach(async ({ page }) => {

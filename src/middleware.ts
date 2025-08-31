@@ -3,7 +3,17 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   // Bypass authentication for E2E testing
-  if (process.env.NODE_ENV === 'test' || process.env.DISABLE_AUTH_FOR_TESTING === 'true') {
+  const isTestEnv = process.env.NODE_ENV === 'test' || process.env['DISABLE_AUTH_FOR_TESTING'] === 'true';
+  
+  // Debug logging for testing
+  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+    console.log('[MIDDLEWARE DEBUG] NODE_ENV:', process.env.NODE_ENV);
+    console.log('[MIDDLEWARE DEBUG] DISABLE_AUTH_FOR_TESTING:', process.env['DISABLE_AUTH_FOR_TESTING']);
+    console.log('[MIDDLEWARE DEBUG] isTestEnv:', isTestEnv);
+  }
+  
+  if (isTestEnv) {
+    console.log('[MIDDLEWARE DEBUG] Bypassing auth for test environment');
     return NextResponse.next()
   }
 

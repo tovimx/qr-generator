@@ -5,7 +5,7 @@ import { TEST_QR_CODES } from './fixtures/test-data';
 
 test.describe('Multi-QR Dashboard Tests', () => {
   let testEmail: string;
-  let testUser: any;
+  let testUser: unknown;
   const testPassword = 'Test123!@#';
 
   test.beforeEach(async ({ page }) => {

@@ -23,3 +23,5 @@ Please do not focus on: (remove if they exists)
 - Accessibility compliance testing functional
 - Cross-browser compatibility
 - mobile testing
+
+do not create files preappend or prefixed with "final-<filename>" or "<filename>-fixed", maintain singular unique version by updating the files with latest recent correct content.

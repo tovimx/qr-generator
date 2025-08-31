@@ -373,7 +373,7 @@ test.describe('Security Testing - Comprehensive Suite', () => {
       
       // Check if inline script was blocked
       const scriptExecuted = await page.evaluate(() => {
-        return (window as Record<string, unknown>).CSP_TEST_EXECUTED;
+        return (window as unknown as Record<string, unknown>)['CSP_TEST_EXECUTED'];
       });
       
       expect(scriptExecuted).toBeUndefined();

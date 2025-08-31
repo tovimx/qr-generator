@@ -42,7 +42,7 @@ export class TestHelpers {
     if (monitorPerformance) {
       // Start performance monitoring
       await this.page.evaluate(() => {
-        (window as Record<string, unknown>).performanceStart = performance.now();
+        (window as unknown as Record<string, unknown>)['performanceStart'] = performance.now();
       });
     }
 
@@ -83,7 +83,7 @@ export class TestHelpers {
         }
         
         return element;
-      } catch (error) {
+      } catch {
         // Continue to next selector
         continue;
       }
@@ -210,7 +210,7 @@ export class TestHelpers {
         if (result) {
           return;
         }
-      } catch (error) {
+      } catch {
         // Continue waiting
       }
       await this.page.waitForTimeout(interval);
@@ -306,7 +306,7 @@ export class TestHelpers {
         domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
         networkTime: navigation.responseEnd - navigation.requestStart,
         renderTime: paint.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
-        memoryUsage: (performance as any).memory?.usedJSHeapSize
+        memoryUsage: (performance as unknown as { memory?: { usedJSHeapSize: number } })?.memory?.usedJSHeapSize
       };
     });
 
@@ -326,7 +326,7 @@ export class TestHelpers {
     const { includeRequests, excludeRequests } = options;
     const requests: Array<{ url: string; status: number; duration: number }> = [];
 
-    const requestHandler = (request: any) => {
+    const requestHandler = (request: import('@playwright/test').Request) => {
       const url = request.url();
       
       if (includeRequests && !url.match(includeRequests)) return;
@@ -334,12 +334,14 @@ export class TestHelpers {
       
       const startTime = Date.now();
       
-      request.response().then((response: any) => {
-        requests.push({
-          url,
-          status: response.status(),
-          duration: Date.now() - startTime
-        });
+      request.response().then((response: import('@playwright/test').Response | null) => {
+        if (response) {
+          requests.push({
+            url,
+            status: response.status(),
+            duration: Date.now() - startTime
+          });
+        }
       }).catch(() => {
         // Request failed
         requests.push({
@@ -469,7 +471,7 @@ export class TestHelpers {
     jsHeapSizeLimit: number;
   }> {
     return await this.page.evaluate(() => {
-      const memory = (performance as any).memory;
+      const memory = (performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } })?.memory;
       if (!memory) {
         return {
           usedJSHeapSize: 0,
@@ -541,7 +543,7 @@ export class TestHelpers {
    */
   async validateDatabaseState(
     query: string,
-    expected: any,
+    expected: unknown,
     options: { timeout?: number } = {}
   ): Promise<void> {
     // This would integrate with the database connection
@@ -573,7 +575,7 @@ export class TestHelpers {
       // Clear any global test variables
       Object.keys(window).forEach(key => {
         if (key.startsWith('TEST_')) {
-          delete (window as any)[key];
+          delete (window as unknown as Record<string, unknown>)[key];
         }
       });
     });
