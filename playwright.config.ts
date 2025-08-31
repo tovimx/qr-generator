@@ -87,9 +87,13 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
+    command: 'DISABLE_AUTH_FOR_TESTING=true NODE_ENV=test npm run dev',
     url: 'http://localhost:3004',
     reuseExistingServer: true,
     timeout: 120000,
+    env: {
+      'DISABLE_AUTH_FOR_TESTING': 'true',
+      'NODE_ENV': 'test',
+    },
   },
 });

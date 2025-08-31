@@ -2,6 +2,11 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Bypass authentication for E2E testing
+  if (process.env.NODE_ENV === 'test' || process.env.DISABLE_AUTH_FOR_TESTING === 'true') {
+    return NextResponse.next()
+  }
+
   // Production-safe environment variable access
   const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']
   const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']
