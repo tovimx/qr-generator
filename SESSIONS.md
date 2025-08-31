@@ -1351,6 +1351,15 @@ The TanStack Query refactor **exposed** systematic architectural flaws in our en
 - ✅ Architectural impact analysis framework
 - ✅ Updated CLAUDE.md with mandatory protocols for architectural changes
 
-**Next session focus**: Merge PR #1 and verify all production errors are resolved. Monitor deployment to ensure dashboard loads successfully on both Vercel subdomain and custom domain (`planodigital.mx`).
+**Next session focus**: 
+1. **🛡️ PRIORITY: Database Snake Case Enforcement** - Enforce snake_case everywhere in database for PostgreSQL consistency
+   - Update all Prisma model fields to use @map attributes for snake_case database columns
+   - Create comprehensive validation script for naming convention compliance  
+   - Update GitHub Actions workflow to enforce snake_case validation
+   - Generate migration to standardize any remaining camelCase columns
+   - Document snake_case enforcement strategy in CLAUDE.md
+
+2. Merge PR #1 and verify all production errors are resolved
+3. Monitor deployment to ensure dashboard loads successfully on both domains
 
 ---

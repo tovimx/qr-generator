@@ -1281,6 +1281,239 @@ export function useCreateQRCode() {
 - **QR codes can encode custom domains**
 - **Fallback to platform domain** if custom domain unavailable
 
+## Database Migration Deployment (CRITICAL)
+
+### 🚨 **NEVER FORGET: Migrations Must Be Applied After Deployment**
+
+**CRITICAL RULE**: Database migrations are NEVER applied automatically on Vercel. You MUST manually apply them to production after deploying code changes that modify the database schema.
+
+### **Migration Deployment Protocol**
+
+#### **When Migrations Are Required:**
+- ✅ After adding/removing database fields
+- ✅ After changing field types or constraints  
+- ✅ After creating new tables or relations
+- ✅ After any `prisma/schema.prisma` changes
+- ✅ When you see new files in `prisma/migrations/` directory
+
+#### **How to Apply Migrations to Production:**
+
+```bash
+# 1. Switch to production environment
+cp .env.local.production .env.local
+
+# 2. Deploy migrations to production
+npx prisma migrate deploy
+
+# 3. Verify migrations were applied
+npx prisma migrate status
+
+# 4. Switch back to development
+cp .env.local.backup .env.local
+```
+
+#### **Migration Checklist - MANDATORY**
+
+**Before Each Deployment:**
+- [ ] Check if any new migration files exist in `prisma/migrations/`
+- [ ] Test migrations locally first
+- [ ] Have database backup ready (if critical changes)
+
+**After Each Deployment:**
+- [ ] Apply migrations to production (if any exist)
+- [ ] **CRITICAL**: Run schema validation: `npm run validate:schema`
+- [ ] Test production app functionality  
+- [ ] Verify API endpoints work correctly
+- [ ] Check that existing data is not corrupted
+
+#### **Signs You Forgot Migrations:**
+- 🚨 **API returns**: `{"error": "Failed to fetch..."}`  
+- 🚨 **Console errors**: Column doesn't exist, relation not found
+- 🚨 **Empty data**: UI shows no data but database has records
+- 🚨 **500 errors**: Server crashes on database operations
+
+### **Team Best Practices to Never Forget Migrations**
+
+#### **1. Deployment Checklist (Recommended)**
+Create a deployment checklist and follow it religiously:
+
+```markdown
+## Pre-Deployment Checklist
+- [ ] All tests pass locally
+- [ ] Code builds successfully  
+- [ ] Check for new migration files: `ls prisma/migrations/`
+- [ ] Test migrations locally: `npx prisma migrate reset && npm run dev`
+
+## Post-Deployment Checklist  
+- [ ] Deploy code to Vercel
+- [ ] Apply migrations (if any): `npx prisma migrate deploy`
+- [ ] Test production app thoroughly
+- [ ] Verify all API endpoints work
+- [ ] Check production logs for errors
+```
+
+#### **2. Migration Detection Automation**
+Add a script to detect pending migrations:
+
+```bash
+# Add to package.json
+"check:migrations": "npx prisma migrate status"
+```
+
+#### **3. Schema Synchronization Validation (CRITICAL)**
+**Purpose**: Detects when database schema doesn't match Prisma schema (field mapping issues, missing columns, etc.)
+
+```bash
+# Add to package.json  
+"validate:schema": "node scripts/validate-schema-db-sync.js"
+```
+
+**When to run:**
+- ✅ **After every migration deployment**: `npm run validate:schema`
+- ✅ **When APIs return "Column doesn't exist" errors**
+- ✅ **Before major deployments**
+- ✅ **When switching between environments**
+
+**What it detects:**
+- ❌ Missing database columns that Prisma expects
+- ❌ Field name mapping issues (camelCase vs snake_case)
+- ❌ Incomplete migrations
+- ❌ Schema synchronization problems
+
+**Example output:**
+```
+✅ Required fields working: themeId, primaryColor, avatarUrl
+⚠️  Optional field missing: cardStyle (Column doesn't exist)
+⚠️  Optional field missing: avatarStyle (Column doesn't exist)
+```
+
+**Script location**: `/scripts/validate-schema-db-sync.js`
+
+#### **3. Git Pre-Push Hooks (Advanced)**
+Automatically warn about pending migrations:
+
+```bash
+# .git/hooks/pre-push (create if it doesn't exist)
+#!/bin/bash
+if [ -d "prisma/migrations" ] && [ "$(ls -A prisma/migrations)" ]; then
+  echo "⚠️  WARNING: Migrations detected. Remember to run 'npx prisma migrate deploy' after deployment!"
+fi
+```
+
+#### **4. Team Communication Protocol**
+- **In PR descriptions**: Always mention if migrations are included
+- **In Slack/Discord**: Announce when migrations need to be applied
+- **In commit messages**: Use conventional commits like `feat!: add user roles (BREAKING: migration required)`
+
+#### **5. GitHub Actions CI/CD (Professional Approach)**
+
+**Automated Database Validation on Pull Requests**
+
+The project includes a professional GitHub Actions workflow at `.github/workflows/database-validation.yml` that automatically:
+
+- **Triggers on PR**: Runs when Prisma schema or migration files change
+- **Sets up test database**: Creates isolated PostgreSQL environment
+- **Applies migrations**: Tests migration deployment process
+- **Validates schema**: Runs comprehensive field and mapping checks
+- **Prevents deployment**: Blocks merge if validation fails
+
+**Key validation checks:**
+```yaml
+# Checks for missing @map attributes
+- name: Check for missing @map attributes
+  run: |
+    if grep -r "String\|Boolean\|Int\|DateTime" prisma/schema.prisma | grep -v "@map\|@id\|@default\|@unique\|@relation" | grep -v "//"; then
+      echo "❌ Found fields without @map attributes!"
+      exit 1
+    fi
+
+# Verifies migration completeness
+- name: Verify migration completeness  
+  run: |
+    npx prisma db pull --print > /tmp/actual_schema.prisma
+    if ! diff -q prisma/schema.prisma /tmp/actual_schema.prisma; then
+      echo "⚠️ Schema might be incomplete"
+    fi
+```
+
+**Benefits:**
+- ✅ Catches schema issues before production
+- ✅ Enforces naming convention standards (@map attributes)
+- ✅ Validates migration completeness
+- ✅ Prevents deployment of broken schemas
+- ✅ Team collaboration safety net
+
+**Setup:**
+The workflow is already configured and will run automatically on pull requests that modify:
+- `prisma/schema.prisma`
+- `prisma/migrations/**`
+
+#### **6. Documentation in README**
+Always document the migration process in your project README.
+
+#### **7. Staging Environment (Ideal)**
+- Deploy to staging first
+- Apply migrations to staging
+- Test everything works
+- Then deploy to production with confidence
+
+### **Emergency Rollback Process**
+
+**If migrations break production:**
+
+1. **Immediate**: Revert to previous deployment on Vercel
+2. **Database**: Restore from backup (if available)  
+3. **Investigation**: Test migration fix locally
+4. **Re-deploy**: Apply corrected migration
+
+### **Prisma Naming Convention Standards (CRITICAL)**
+
+**MANDATORY RULE**: All new Prisma model fields MUST use `@map` to ensure snake_case in database.
+
+#### **Correct Pattern:**
+```prisma
+model User {
+  userName     String   @map("user_name")      // ✅ Explicit mapping
+  firstName    String   @map("first_name")     // ✅ Consistent  
+  lastLoginAt  DateTime @map("last_login_at")  // ✅ Clear mapping
+}
+```
+
+#### **NEVER Do This:**
+```prisma
+model User {
+  userName String      // ❌ Prisma will create "userName" column
+  firstName String     // ❌ Inconsistent with existing snake_case
+}
+```
+
+#### **Migration Field Naming Checklist:**
+- [ ] All new fields have `@map("snake_case")` attribute
+- [ ] Database column names are consistent snake_case
+- [ ] `npm run validate:schema` passes after migration
+- [ ] No mixing of camelCase and snake_case in database
+
+**Why This Matters:**
+- PostgreSQL convention is snake_case
+- Your existing fields are snake_case  
+- Mixing conventions causes confusion and bugs
+- Database queries become inconsistent
+
+### **CLAUDE.md Integration**
+
+**Claude will automatically:**
+- ✅ **Detect migrations**: Check for new files in `prisma/migrations/`
+- ✅ **Warn before deployment**: Remind about pending migrations
+- ✅ **Provide exact commands**: Copy-paste ready migration commands
+- ✅ **Verify success**: Help test that migrations worked
+
+**Claude reminder trigger words:**
+- "deploy", "push to production", "production deployment"
+- "database changes", "schema changes", "prisma changes"  
+- "API not working", "500 errors", "data not showing"
+
+---
+
 ## Git Commit & Push Rules
 
 ### 🚫 **NEVER Push Without User Permission**

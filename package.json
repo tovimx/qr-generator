@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "checkerrors": "npx tsc --noEmit && npx eslint src/ tests/ --ext .ts,.tsx",
+    "check:migrations": "npx prisma migrate status",
+    "validate:schema": "node scripts/validate-schema-db-sync.mjs",
     "validate:nextjs": "node scripts/validate-nextjs-architecture.js",
     "validate:all": "npm run checkerrors && npm run validate:nextjs",
     "impact-analysis": "scripts/architectural-impact-analysis.sh",

@@ -1,0 +1,74 @@
+name: Database Schema Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths: 
+      - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
+
+jobs:
+  schema-validation:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qr_generator_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qr_generator_test
+          DIRECT_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qr_generator_test
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          
+      - name: Run schema validation
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qr_generator_test
+        run: npm run validate:schema
+        
+      - name: Check for missing @map attributes
+        run: |
+          # Check if new fields are missing @map attributes
+          if grep -r "String\|Boolean\|Int\|DateTime" prisma/schema.prisma | grep -v "@map\|@id\|@default\|@unique\|@relation" | grep -v "//"; then
+            echo "❌ Found fields without @map attributes!"
+            echo "All fields should use @map('snake_case') for consistency"
+            exit 1
+          else
+            echo "✅ All fields have proper @map attributes"
+          fi
+          
+      - name: Verify migration completeness
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qr_generator_test
+        run: |
+          # Check that all schema fields exist in database
+          npx prisma db pull --print > /tmp/actual_schema.prisma
+          if ! diff -q prisma/schema.prisma /tmp/actual_schema.prisma > /dev/null; then
+            echo "⚠️ Schema might be incomplete. Differences found:"
+            diff prisma/schema.prisma /tmp/actual_schema.prisma || true
+          fi

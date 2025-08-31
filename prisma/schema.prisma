@@ -83,21 +83,21 @@ model QRCode {
   cornerRadius Int       @default(0)
   fgColor      String    @default("#000000")
   // Custom Design Fields
-  themeId      String    @default("default")
-  primaryColor String    @default("#6366f1")
-  secondaryColor String  @default("#8b5cf6")
-  backgroundType String  @default("gradient")
-  backgroundValue String?
-  buttonStyle  String    @default("rounded")
-  cardStyle    String    @default("floating")
-  fontFamily   String    @default("inter")
-  customCss    String?
-  avatarUrl    String?
-  avatarStyle  String    @default("circle")
+  themeId      String    @default("default")     @map("theme_id")
+  primaryColor String    @default("#6366f1")     @map("primary_color")
+  secondaryColor String  @default("#8b5cf6")     @map("secondary_color")
+  backgroundType String  @default("gradient")    @map("background_type")
+  backgroundValue String?                        @map("background_value")
+  buttonStyle  String    @default("rounded")     @map("button_style")
+  cardStyle    String    @default("floating")    @map("card_style")
+  fontFamily   String    @default("inter")       @map("font_family")
+  customCss    String?                           @map("custom_css")
+  avatarUrl    String?                           @map("avatar_url")
+  avatarStyle  String    @default("circle")      @map("avatar_style")
   description  String?
-  socialLinks  Json?
-  customTitle  String?
-  showTitle    Boolean   @default(true)
+  socialLinks  Json?                             @map("social_links")
+  customTitle  String?                           @map("custom_title")
+  showTitle    Boolean   @default(true)          @map("show_title")
   links        Link[]
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   scans        Scan[]

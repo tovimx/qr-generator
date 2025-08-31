@@ -4,9 +4,11 @@ import { generateShortCode } from '@/lib/utils/qr-code'
 import { createClient } from '@/lib/auth/supabase/server'
 
 export async function GET(request: Request) {
+  let user = null
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    user = authUser
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -54,8 +56,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ qrCodes })
   } catch (error) {
     console.error('Error fetching QR codes:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      user: user?.id
+    })
     return NextResponse.json(
-      { error: 'Failed to fetch QR codes' },
+      { 
+        error: 'Failed to fetch QR codes',
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+      },
       { status: 500 }
     )
   }
