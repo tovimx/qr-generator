@@ -79,7 +79,7 @@ jobs:
         run: npm ci
 
       - name: 🧹 ESLint check
-        run: npx eslint src/ tests/ --ext .ts,.tsx --format github
+        run: npx eslint src/ tests/ --ext .ts,.tsx
 
       - name: 🔍 TypeScript check
         run: npx tsc --noEmit
