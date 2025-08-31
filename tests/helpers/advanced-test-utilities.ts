@@ -230,7 +230,7 @@ export class LoadTestHelper {
     averageTime: number;
     errors: string[];
   }> {
-    const results = [];
+    const results: Array<{ success: boolean; duration: number }> = [];
     const errors: string[] = [];
 
     const userPromises = Array.from({ length: userCount }, async (_, index) => {
@@ -492,6 +492,281 @@ export class TestDatabaseHelper {
     // For now, just clear browser state
     await this.page.context().clearCookies();
     console.log(`Cleanup completed for test user: ${userEmail}`);
+  }
+}
+
+/**
+ * QR Code specific test helper
+ */
+export class QRCodeTestHelper {
+  constructor(private page: Page) {}
+
+  /**
+   * Generate test QR data with realistic content
+   */
+  static generateTestQRData() {
+    const timestamp = Date.now();
+    const profiles = [
+      {
+        title: `Business Card ${timestamp}`,
+        description: 'My professional profile',
+        links: [
+          { title: 'Website', url: 'https://example.com' },
+          { title: 'LinkedIn', url: 'https://linkedin.com/in/test' },
+          { title: 'Email', url: 'mailto:test@example.com' }
+        ]
+      },
+      {
+        title: `Restaurant Menu ${timestamp}`,
+        description: 'View our delicious menu',
+        links: [
+          { title: 'Menu', url: 'https://menu.example.com' },
+          { title: 'Order Online', url: 'https://order.example.com' },
+          { title: 'Location', url: 'https://maps.example.com' }
+        ]
+      }
+    ];
+    
+    return profiles[Math.floor(Math.random() * profiles.length)];
+  }
+
+  /**
+   * Wait for QR code to be generated and visible
+   */
+  async waitForQRCodeGeneration(timeout = 10000): Promise<boolean> {
+    try {
+      // Wait for QR code canvas, SVG, or image
+      await this.page.waitForSelector('canvas, svg[data-testid*="qr"], img[alt*="QR"], .qr-code', { timeout });
+      
+      // Additional wait for QR generation to complete
+      await this.page.waitForTimeout(1000);
+      
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Verify QR code properties and functionality
+   */
+  async verifyQRCodeProperties(): Promise<{
+    isVisible: boolean;
+    hasContent: boolean;
+    dimensions?: { width: number; height: number };
+    type: 'canvas' | 'svg' | 'image' | 'unknown';
+  }> {
+    const qrElement = this.page.locator('canvas, svg[data-testid*="qr"], img[alt*="QR"], .qr-code').first();
+    
+    if (!await qrElement.isVisible()) {
+      return { isVisible: false, hasContent: false, type: 'unknown' };
+    }
+
+    const tagName = await qrElement.evaluate(el => el.tagName.toLowerCase());
+    const boundingBox = await qrElement.boundingBox();
+    
+    let hasContent = false;
+    let type: 'canvas' | 'svg' | 'image' | 'unknown' = 'unknown';
+
+    switch (tagName) {
+      case 'canvas':
+        type = 'canvas';
+        hasContent = await qrElement.evaluate((canvas: HTMLCanvasElement) => {
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return false;
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          return Array.from(imageData.data).some(pixel => pixel !== 0);
+        });
+        break;
+      case 'svg':
+        type = 'svg';
+        hasContent = await qrElement.evaluate(svg => svg.children.length > 0);
+        break;
+      case 'img':
+        type = 'image';
+        hasContent = await qrElement.evaluate((img: HTMLImageElement) => !!img.src);
+        break;
+      default:
+        hasContent = await qrElement.textContent().then(text => !!(text && text.length > 0));
+    }
+
+    return {
+      isVisible: true,
+      hasContent,
+      dimensions: boundingBox ? { width: boundingBox.width, height: boundingBox.height } : undefined,
+      type
+    };
+  }
+
+  /**
+   * Test QR code link functionality by visiting the QR page
+   */
+  async testQRCodeLink(shortCode: string): Promise<{
+    accessible: boolean;
+    responseTime: number;
+    hasContent: boolean;
+    linksWork: boolean;
+    errors: string[];
+  }> {
+    const startTime = Date.now();
+    const errors: string[] = [];
+    
+    try {
+      // Visit the QR page
+      const response = await this.page.goto(`/q/${shortCode}`);
+      const responseTime = Date.now() - startTime;
+      
+      if (!response || !response.ok()) {
+        errors.push(`QR page returned ${response?.status() || 'no response'}`);
+        return { accessible: false, responseTime, hasContent: false, linksWork: false, errors };
+      }
+
+      await this.page.waitForLoadState('networkidle');
+
+      // Check if page has content
+      const pageContent = await this.page.textContent('body');
+      const hasContent = !!(pageContent && pageContent.trim().length > 10);
+
+      if (!hasContent) {
+        errors.push('QR page has no meaningful content');
+      }
+
+      // Test if links are clickable and functional
+      const links = this.page.locator('a[href]:not([href="#"]):not([href=""])');
+      const linkCount = await links.count();
+      let linksWork = true;
+
+      if (linkCount > 0) {
+        // Test first few links (don't click external ones, just verify they exist and have proper attributes)
+        for (let i = 0; i < Math.min(linkCount, 3); i++) {
+          const link = links.nth(i);
+          const href = await link.getAttribute('href');
+          const isVisible = await link.isVisible();
+          
+          if (!href || !isVisible) {
+            linksWork = false;
+            errors.push(`Link ${i + 1} is not properly configured`);
+          }
+        }
+      }
+
+      return {
+        accessible: true,
+        responseTime,
+        hasContent,
+        linksWork,
+        errors
+      };
+
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      errors.push(`Error accessing QR page: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return { accessible: false, responseTime, hasContent: false, linksWork: false, errors };
+    }
+  }
+
+  /**
+   * Extract QR code short code from dashboard
+   */
+  async extractQRShortCode(): Promise<string | null> {
+    try {
+      // Look for QR short code in various possible locations
+      const shortCodeSelectors = [
+        '[data-testid*="short-code"]',
+        '[data-short-code]',
+        'input[value*="/q/"]',
+        'text*="/q/"'
+      ];
+
+      for (const selector of shortCodeSelectors) {
+        const element = this.page.locator(selector).first();
+        if (await element.isVisible({ timeout: 1000 })) {
+          const text = await element.textContent() || await element.inputValue() || '';
+          const match = text.match(/\/q\/([a-zA-Z0-9]+)/);
+          if (match) {
+            return match[1];
+          }
+        }
+      }
+
+      // Fallback: look in page URL or data attributes
+      const url = this.page.url();
+      const urlMatch = url.match(/shortCode=([a-zA-Z0-9]+)/);
+      if (urlMatch) {
+        return urlMatch[1];
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Test QR code customization changes
+   */
+  async testCustomizationFeatures(): Promise<{
+    titleEditable: boolean;
+    linksEditable: boolean;
+    themeChangeable: boolean;
+    changesApplied: boolean;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
+    let titleEditable = false;
+    let linksEditable = false; 
+    let themeChangeable = false;
+    let changesApplied = false;
+
+    try {
+      // Test title editing
+      const titleInput = this.page.locator('input[placeholder*="title"], input[name*="title"], [contenteditable="true"]').first();
+      if (await titleInput.isVisible({ timeout: 2000 })) {
+        const originalTitle = await titleInput.inputValue() || await titleInput.textContent();
+        const newTitle = `Test Title ${Date.now()}`;
+        
+        await titleInput.clear();
+        await titleInput.fill(newTitle);
+        await this.page.waitForTimeout(500);
+        
+        const updatedTitle = await titleInput.inputValue() || await titleInput.textContent();
+        titleEditable = updatedTitle === newTitle;
+        
+        if (titleEditable) {
+          changesApplied = true;
+        }
+      }
+
+      // Test link editing
+      const addLinkButton = this.page.locator('button:has-text("Add Link"), button:has-text("Add"), button[data-testid*="add-link"]').first();
+      if (await addLinkButton.isVisible({ timeout: 2000 })) {
+        await addLinkButton.click();
+        await this.page.waitForTimeout(1000);
+        
+        const linkInputs = this.page.locator('input[placeholder*="link"], input[name*="url"]');
+        if (await linkInputs.first().isVisible({ timeout: 2000 })) {
+          linksEditable = true;
+          changesApplied = true;
+        }
+      }
+
+      // Test theme changes
+      const themeSelectors = this.page.locator('[data-testid*="theme"], .theme-option, button:has-text("Theme")');
+      if (await themeSelectors.first().isVisible({ timeout: 2000 })) {
+        themeChangeable = true;
+      }
+
+    } catch (error) {
+      errors.push(`Customization test error: ${error instanceof Error ? error.message : 'Unknown'}`);
+    }
+
+    return {
+      titleEditable,
+      linksEditable,
+      themeChangeable,
+      changesApplied,
+      errors
+    };
   }
 }
 
