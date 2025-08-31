@@ -1,5 +1,8 @@
 import { Page, expect } from '@playwright/test';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /**
  * Enhanced Authentication helpers for Playwright tests
  */

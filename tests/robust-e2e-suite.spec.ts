@@ -3,6 +3,9 @@
  * Tests that work around authentication issues and focus on what can be reliably tested
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { test, expect } from '@playwright/test';
 
 test.describe('Robust E2E Test Suite', () => {
