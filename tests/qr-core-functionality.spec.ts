@@ -416,7 +416,8 @@ test.describe('QR Code Core Functionality - Complete Workflow', () => {
           document.querySelector('script[src*="analytics"]') ||
           document.querySelector('script[src*="gtag"]') ||
           document.querySelector('script[src*="google"]') ||
-          window.gtag ||
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).gtag ||
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (window as any).ga ||
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
