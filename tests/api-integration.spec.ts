@@ -4,6 +4,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { test, expect } from '@playwright/test';
 import { AuthHelper } from './helpers/auth';
@@ -181,7 +182,7 @@ test.describe('API Integration Tests', () => {
     
     // Test invalid QR code creation
     const invalidQRResponse = await apiHelper.createQRCode({
-      // Missing required title
+      title: '', // Empty title to test validation
       links: []
     });
     
