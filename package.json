@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "checkerrors": "npx tsc --noEmit && npx eslint src/ tests/ --ext .ts,.tsx",
+    "validate:nextjs": "node scripts/validate-nextjs-architecture.js",
+    "validate:all": "npm run checkerrors && npm run validate:nextjs",
     "impact-analysis": "scripts/architectural-impact-analysis.sh",
     "dependency-analysis": "scripts/dependency-graph-analysis.sh",
     "test:ssr": "node scripts/test-ssr.js",
