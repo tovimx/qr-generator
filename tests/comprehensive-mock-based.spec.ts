@@ -268,7 +268,8 @@ test.describe('QR Code Generator - Mock-Based E2E Tests', () => {
       await expect(page.getByText(/links|connect/i)).toBeVisible();
       
       // Should show mock links
-      await expect(page.getByRole('link')).toHaveCount.greaterThan(0);
+      const links = await page.getByRole('link').count();
+      expect(links).toBeGreaterThan(0);
     });
 
     test('should track analytics when QR page is viewed', async ({ page }) => {
@@ -347,7 +348,8 @@ test.describe('QR Code Generator - Mock-Based E2E Tests', () => {
       await expect(page).toHaveURL('/dashboard');
       
       // Should restore QR codes
-      await expect(page.locator('[data-testid="qr-tab"], .qr-tab')).toHaveCount.greaterThan(0);
+      const qrTabCount = await page.locator('[data-testid="qr-tab"], .qr-tab').count();
+      expect(qrTabCount).toBeGreaterThan(0);
     });
   });
 
@@ -376,7 +378,8 @@ test.describe('QR Code Generator - Mock-Based E2E Tests', () => {
       await expect(page.getByText(/project|default/i)).toBeVisible();
       
       // QR codes should be grouped by project
-      await expect(page.locator('[data-testid="qr-tab"], .qr-tab')).toHaveCount.greaterThan(0);
+      const qrTabs = await page.locator('[data-testid="qr-tab"], .qr-tab').count();
+      expect(qrTabs).toBeGreaterThan(0);
     });
   });
 });
@@ -384,9 +387,9 @@ test.describe('QR Code Generator - Mock-Based E2E Tests', () => {
 /**
  * Helper function to set up comprehensive API mocks
  */
-async function setupAPIMocks(page) {
+async function setupAPIMocks(page: any) {
   // Mock authentication endpoints
-  await page.route('**/auth/**', async (route) => {
+  await page.route('**/auth/**', async (route: any) => {
     const url = route.request().url();
     const method = route.request().method();
     
@@ -414,7 +417,7 @@ async function setupAPIMocks(page) {
   });
   
   // Mock API endpoints
-  await page.route('**/api/**', async (route) => {
+  await page.route('**/api/**', async (route: any) => {
     const url = route.request().url();
     const method = route.request().method();
     
@@ -463,7 +466,7 @@ async function setupAPIMocks(page) {
   });
 
   // Mock QR code public pages
-  await page.route('**/q/**', async (route) => {
+  await page.route('**/q/**', async (route: any) => {
     await route.fulfill({
       status: 200,
       contentType: 'text/html',
@@ -484,7 +487,7 @@ async function setupAPIMocks(page) {
 /**
  * Helper function to mock an authenticated user
  */
-async function mockAuthenticatedUser(page) {
+async function mockAuthenticatedUser(page: any) {
   await page.addInitScript(() => {
     // Mock localStorage auth state
     localStorage.setItem('sb-test-auth-token', JSON.stringify({

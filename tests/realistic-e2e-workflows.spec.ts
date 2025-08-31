@@ -208,18 +208,18 @@ test.describe('QR Code Generator - Realistic User Workflows', () => {
       await expect(page.locator('body')).toBeVisible({ timeout: 15000 });
     });
 
-    test('should handle JavaScript disabled gracefully', async ({ page }) => {
-      // Disable JavaScript
-      await page.setJavaScriptEnabled(false);
+    test('should handle JavaScript disabled gracefully', async ({ page, context }) => {
+      // Create a new page with JavaScript disabled
+      const jsDisabledPage = await context.newPage();
+      await jsDisabledPage.context().setJavaScriptEnabled(false);
       
-      await page.goto('/');
+      await jsDisabledPage.goto('/');
       
       // Should show some content even without JS
-      const bodyText = await page.locator('body').textContent();
+      const bodyText = await jsDisabledPage.locator('body').textContent();
       expect(bodyText?.trim().length).toBeGreaterThan(0);
       
-      // Re-enable JavaScript for other tests
-      await page.setJavaScriptEnabled(true);
+      await jsDisabledPage.close();
     });
   });
 
@@ -332,7 +332,7 @@ test.describe('QR Code Generator - Realistic User Workflows', () => {
 
   test.describe('Cross-Browser Compatibility', () => {
     
-    test('should work consistently across different user agents', async ({ page }) => {
+    test('should work consistently across different user agents', async ({ page, context }) => {
       const userAgents = [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -340,10 +340,11 @@ test.describe('QR Code Generator - Realistic User Workflows', () => {
       ];
       
       for (const userAgent of userAgents) {
-        await page.setUserAgent(userAgent);
-        await page.goto('/');
+        const newPage = await context.newPage({ userAgent });
+        await newPage.goto('/');
         
-        await expect(page.locator('body')).toBeVisible();
+        await expect(newPage.locator('body')).toBeVisible();
+        await newPage.close();
       }
     });
   });
