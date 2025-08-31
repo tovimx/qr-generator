@@ -6,7 +6,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
-// Test user credentials
+// Test user credentials (currently unused but kept for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const TEST_USER = {
   email: 'test@example.com',
   password: 'Test123!@#',
@@ -32,7 +33,7 @@ test.describe('Authentication Flow - Fixed', () => {
       try {
         localStorage.clear();
         sessionStorage.clear();
-      } catch (e) {
+      } catch {
         // Ignore localStorage access errors
         console.log('Storage access denied, continuing without clearing');
       }

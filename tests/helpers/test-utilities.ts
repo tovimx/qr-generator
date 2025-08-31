@@ -3,7 +3,7 @@
  * Provides robust utilities for E2E testing
  */
 
-import { Page, expect, Locator } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 /**
  * Wait for page to be fully loaded and interactive
@@ -206,6 +206,7 @@ export class DebugHelper {
     const url = this.page.url();
     const title = await this.page.title();
     const errors = await this.page.evaluate(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (window as any).testErrors || [];
     });
     
@@ -236,6 +237,7 @@ export class NetworkHelper {
   constructor(private page: Page) {}
 
   async interceptAuthRequests() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const requests: any[] = [];
     
     await this.page.route('**/auth/**', route => {
