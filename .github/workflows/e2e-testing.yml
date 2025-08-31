@@ -22,6 +22,8 @@ on:
         - reliability
         - api
         - analytics
+        - security
+        - visual
 
 jobs:
   smoke-tests:
@@ -335,10 +337,107 @@ jobs:
           test-results/
         retention-days: 14
 
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'security' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate Prisma Client
+      run: npx prisma generate
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run security tests
+      run: npx playwright test security.spec.ts --project=chromium --workers=1
+      env:
+        DATABASE_URL: "postgresql://user:pass@localhost:5432/test"
+        NEXT_PUBLIC_SUPABASE_URL: "https://test.supabase.co"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key"
+        SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key"
+        NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+    - name: Upload security test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-test-results
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 30
+
+  visual-regression-tests:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'visual' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate Prisma Client
+      run: npx prisma generate
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run visual regression tests
+      run: npx playwright test visual-regression.spec.ts --project=chromium --workers=1
+      env:
+        DATABASE_URL: "postgresql://user:pass@localhost:5432/test"
+        NEXT_PUBLIC_SUPABASE_URL: "https://test.supabase.co"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key"
+        SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key"
+        NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+    - name: Upload visual regression test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: visual-regression-test-results
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 30
+
+    - name: Upload visual screenshots
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: visual-screenshots
+        path: |
+          test-results/**/test-*/*-actual.png
+          test-results/**/test-*/*-expected.png
+          test-results/**/test-*/*-diff.png
+        retention-days: 14
+
   test-reporting:
     name: Generate Test Report
     runs-on: ubuntu-latest
-    needs: [smoke-tests, comprehensive-tests, performance-tests, reliability-tests, api-tests, analytics-tests]
+    needs: [smoke-tests, comprehensive-tests, performance-tests, reliability-tests, api-tests, analytics-tests, security-tests, visual-regression-tests]
     if: always()
     
     steps:
@@ -369,6 +468,8 @@ jobs:
         echo "| Reliability Tests | ✅ | ~20m | Chromium |" >> test-report.md
         echo "| API Integration Tests | ✅ | ~8m | Chromium |" >> test-report.md
         echo "| Analytics Tests | ✅ | ~12m | Chromium |" >> test-report.md
+        echo "| Security Tests | ✅ | ~15m | Chromium |" >> test-report.md
+        echo "| Visual Regression Tests | ✅ | ~10m | Chromium |" >> test-report.md
         
         echo "" >> test-report.md
         echo "## Test Coverage Areas" >> test-report.md
@@ -383,6 +484,8 @@ jobs:
         echo "- 🔌 API Integration & Validation" >> test-report.md
         echo "- 📱 Responsive Design & Mobile" >> test-report.md
         echo "- 🚀 Network Failure Scenarios" >> test-report.md
+        echo "- 🛡️ Security & XSS Protection" >> test-report.md
+        echo "- 🎨 Visual Regression & UI Consistency" >> test-report.md
         
         echo "" >> test-report.md
         echo "Generated at: $(date)" >> test-report.md
@@ -417,7 +520,7 @@ jobs:
   deployment-readiness:
     name: Deployment Readiness Check
     runs-on: ubuntu-latest
-    needs: [smoke-tests, comprehensive-tests, performance-tests, reliability-tests, api-tests, analytics-tests]
+    needs: [smoke-tests, comprehensive-tests, performance-tests, reliability-tests, api-tests, analytics-tests, security-tests, visual-regression-tests]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
