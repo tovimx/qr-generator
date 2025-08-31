@@ -39,16 +39,14 @@ export class TestHelpers {
   } = {}): Promise<PerformanceMetrics | void> {
     const { waitForLoad = true, monitorPerformance = false, timeout = 30000 } = options;
     
-    const startTime = Date.now();
-    
     if (monitorPerformance) {
       // Start performance monitoring
       await this.page.evaluate(() => {
-        (window as any).performanceStart = performance.now();
+        (window as Record<string, unknown>).performanceStart = performance.now();
       });
     }
 
-    const response = await this.page.goto(url, { 
+    await this.page.goto(url, { 
       waitUntil: waitForLoad ? 'networkidle' : 'domcontentloaded',
       timeout 
     });
@@ -136,10 +134,11 @@ export class TestHelpers {
           }
 
           break; // Success, exit retry loop
-        } catch (error) {
+        } catch (error: unknown) {
           attempts++;
           if (attempts >= retries) {
-            throw new Error(`Failed to fill field after ${retries} attempts: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Failed to fill field after ${retries} attempts: ${errorMessage}`);
           }
           await this.page.waitForTimeout(1000); // Wait before retry
         }
@@ -173,7 +172,7 @@ export class TestHelpers {
       }
     }
 
-    const promises: Promise<any>[] = [element.click()];
+    const promises: Promise<unknown>[] = [element.click()];
 
     if (waitForNavigation) {
       promises.push(this.page.waitForLoadState('networkidle', { timeout }));

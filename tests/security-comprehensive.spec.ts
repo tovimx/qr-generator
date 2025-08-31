@@ -322,13 +322,13 @@ test.describe('Security Testing - Comprehensive Suite', () => {
             status: response.status,
             headers: Object.fromEntries(response.headers.entries())
           };
-        } catch (error) {
-          return { error: error.message };
+        } catch (error: unknown) {
+          return { error: error instanceof Error ? error.message : 'Unknown error' };
         }
       }, maliciousOrigin);
       
       // Should either block the request or have proper CORS headers
-      if (!response.error) {
+      if (!response.error && response.headers) {
         const corsHeader = response.headers['access-control-allow-origin'];
         if (corsHeader) {
           expect(corsHeader).not.toBe('*');
@@ -373,7 +373,7 @@ test.describe('Security Testing - Comprehensive Suite', () => {
       
       // Check if inline script was blocked
       const scriptExecuted = await page.evaluate(() => {
-        return (window as any).CSP_TEST_EXECUTED;
+        return (window as Record<string, unknown>).CSP_TEST_EXECUTED;
       });
       
       expect(scriptExecuted).toBeUndefined();
@@ -432,7 +432,7 @@ test.describe('Security Testing - Comprehensive Suite', () => {
           
           // Check for SQL error messages in the UI
           const errorElement = page.locator('.error, [data-testid="error"]');
-          const errorText = await errorElement.textContent().catch(() => '');
+          const errorText = await errorElement.textContent().catch(() => '') || '';
           
           // Should not expose SQL errors
           expect(errorText.toLowerCase()).not.toMatch(/sql|syntax|mysql|postgres|database/);
