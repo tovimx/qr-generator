@@ -272,7 +272,7 @@ test.describe('Network Failure Simulation', () => {
         await page.goto('/login');
       } catch (error) {
         // Expected timeout error
-        expect(error.message).toContain('Timeout');
+        expect((error as Error).message).toContain('Timeout');
       }
     });
   });
