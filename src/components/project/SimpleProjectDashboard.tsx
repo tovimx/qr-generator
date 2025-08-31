@@ -9,6 +9,7 @@ import DomainManager from '../dashboard/DomainManager'
 import { QRCodeData, ProjectWithStats } from '@/types/qr-code'
 import { useProjects, useCreateProject } from '@/hooks/use-projects'
 import { useQRCodes, useCreateQRCode, useDeleteQRCode, useUpdateQRCode } from '@/hooks/use-qr-codes'
+import { showSuccess, showError } from '@/lib/toast'
 
 // Using TanStack Query for state management
 
@@ -92,9 +93,10 @@ export default function SimpleProjectDashboard({
     try {
       const newProject = await createProjectAsync(name)
       setSelectedProject(newProject)
+      showSuccess(`Project "${name}" created successfully!`)
     } catch (error) {
       console.error('Error creating project:', error)
-      alert(error instanceof Error ? error.message : 'Failed to create project')
+      showError(error instanceof Error ? error.message : 'Failed to create project')
     }
   }
 
@@ -116,9 +118,10 @@ export default function SimpleProjectDashboard({
       setSelectedQRCode(newQRCode)
       setCreateQRModalOpen(false)
       setCreateQRNameInput('')
+      showSuccess(`QR code "${qrTitle}" created successfully!`)
     } catch (error) {
       console.error('Error creating QR code:', error)
-      alert(error instanceof Error ? error.message : 'Failed to create QR code')
+      showError(error instanceof Error ? error.message : 'Failed to create QR code')
     }
   }
 
@@ -134,9 +137,10 @@ export default function SimpleProjectDashboard({
       // Close confirmation dialog
       setDeleteConfirmOpen(null)
       setDropdownOpen(null)
+      showSuccess('QR code deleted successfully')
     } catch (error) {
       console.error('Error deleting QR code:', error)
-      alert(error instanceof Error ? error.message : 'Failed to delete QR code')
+      showError(error instanceof Error ? error.message : 'Failed to delete QR code')
     }
   }
 
@@ -157,9 +161,10 @@ export default function SimpleProjectDashboard({
       setEditQRNameOpen(null)
       setNewQRName('')
       setDropdownOpen(null)
+      showSuccess(`QR code renamed to "${newQRName.trim()}"`)
     } catch (error) {
       console.error('Error updating QR code name:', error)
-      alert(error instanceof Error ? error.message : 'Failed to update QR code name')
+      showError(error instanceof Error ? error.message : 'Failed to update QR code name')
     }
   }
 

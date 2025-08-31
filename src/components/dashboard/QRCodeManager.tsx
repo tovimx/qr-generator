@@ -14,6 +14,7 @@ import { getQRCodeUrl, getAppBaseUrl } from '@/lib/utils/qr-code'
 import { QRCodeData } from '@/types/qr-code'
 import { useDomains } from '@/hooks/use-domains'
 import { useUpdateQRCodeDestination, useUpdateQRCodeLinks, useUpdateQRCodeLogo, useUpdateQRCodeStyle, useUpdateQRCodePreferredDomain } from '@/hooks/use-qr-codes'
+import { showSuccess, showError, showWarning } from '@/lib/toast'
 
 interface QRCodeManagerProps {
   qrCode: QRCodeData | null
@@ -79,7 +80,7 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
       if (domain) {
         preferredDomainId = domain.id
       } else {
-        console.warn('Domain not found:', domainValue)
+        showWarning('Selected domain not found in your domains list')
         return // Don't save if domain not found
       }
     }
@@ -90,8 +91,10 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         preferredDomainId
       })
       setQrCode(updatedQrCode)
+      showSuccess('Domain preference saved successfully')
     } catch (error) {
       console.error('Failed to update preferred domain:', error)
+      showError('Failed to update domain preference')
     }
   }
   
@@ -106,9 +109,10 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         links
       })
       setQrCode(updatedQrCode)
+      showSuccess('Links updated successfully')
     } catch (err) {
       console.error('Failed to update links:', err)
-      // Error handling is done by the mutation hook
+      showError('Failed to update links')
     }
   }
 
@@ -125,9 +129,10 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
       setRedirectType(updatedQrCode.redirectType as 'links' | 'url')
       setRedirectUrl(updatedQrCode.redirectUrl || '')
       setEditingDestination(false)
+      showSuccess('Destination updated successfully')
     } catch (err) {
       console.error('Failed to update destination:', err)
-      // Error handling is done by the mutation hook
+      showError('Failed to update destination')
     }
   }
 
@@ -142,8 +147,10 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         logoShape: logoShape as 'square' | 'circle' || 'square'
       })
       setQrCode(updatedQrCode)
+      showSuccess('Logo updated successfully')
     } catch (err) {
       console.error('Failed to update logo:', err)
+      showError('Failed to update logo')
       throw err // Re-throw to handle in LogoUploader
     }
   }
@@ -159,8 +166,10 @@ export default function QRCodeManager({ qrCode: initialQrCode }: QRCodeManagerPr
         ...(bgColor !== undefined && { bgColor })
       })
       setQrCode(updatedQrCode)
+      showSuccess('Style updated successfully')
     } catch (err) {
       console.error('Failed to update style:', err)
+      showError('Failed to update style')
       throw err
     }
   }

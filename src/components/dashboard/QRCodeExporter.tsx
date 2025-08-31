@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import * as htmlToImage from 'html-to-image'
+import { showSuccess, showError } from '@/lib/toast'
 
 interface QRCodeExporterProps {
   value?: string
@@ -25,7 +26,7 @@ export default function QRCodeExporter({ qrCodeId }: QRCodeExporterProps) {
       const element = document.querySelector(`[data-qr-id="${qrCodeId}"] .qr-code-container`) as HTMLElement
       
       if (!element) {
-        console.error('QR code container not found')
+        showError('QR code not ready for export. Please wait for it to load.')
         return
       }
 
@@ -36,7 +37,7 @@ export default function QRCodeExporter({ qrCodeId }: QRCodeExporterProps) {
         const qrElement = element.querySelector('.qr-code-export-target') as HTMLElement
         
         if (!qrElement) {
-          console.error('QR code export target not found')
+          showError('QR code export target not found. Please try again.')
           return
         }
         
@@ -65,7 +66,7 @@ export default function QRCodeExporter({ qrCodeId }: QRCodeExporterProps) {
         const qrElement = element.querySelector('.qr-code-export-target') as HTMLElement
         
         if (!qrElement) {
-          console.error('QR code export target not found')
+          showError('QR code export target not found. Please try again.')
           return
         }
         
@@ -94,8 +95,12 @@ export default function QRCodeExporter({ qrCodeId }: QRCodeExporterProps) {
         
         URL.revokeObjectURL(url)
       }
+      
+      // Show success message
+      showSuccess(`QR code exported successfully as ${format.toUpperCase()}`)
     } catch (error) {
       console.error('Export error:', error)
+      showError('Failed to export QR code. Please try again.')
     } finally {
       setTimeout(() => setExporting(false), 500)
     }
