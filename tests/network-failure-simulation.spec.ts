@@ -34,7 +34,7 @@ test.describe('Network Failure Simulation', () => {
       await expect(page).toHaveURL(/\/login/);
       
       // Simulate user login first
-      await apiMock.mockAuthenticationSuccess();
+      await apiMock.authenticateUser('test@example.com');
       await page.fill('[data-testid="email"]', 'test@example.com');
       await page.fill('[data-testid="password"]', 'password123');
       await page.click('[data-testid="login-button"]');
