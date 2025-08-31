@@ -8,25 +8,23 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelper } from './helpers/auth';
 import { QRCodePage } from './helpers/qr-page';
-import { DatabaseHelper } from './helpers/database';
+import { createTestUser, cleanupTestUser, createTestQRCode, addLinksToQRCode } from './helpers/database';
 import { generateTestEmail } from './helpers/supabase-auth';
 
 test.describe('Complete User Journeys', () => {
   let authHelper: AuthHelper;
   let qrPage: QRCodePage;
-  let dbHelper: DatabaseHelper;
   let testEmail: string;
   const testPassword = 'Test123!@#';
 
   test.beforeEach(async ({ page }) => {
     authHelper = new AuthHelper(page);
     qrPage = new QRCodePage(page);
-    dbHelper = new DatabaseHelper(page);
     testEmail = generateTestEmail('journey');
   });
 
   test.afterEach(async () => {
-    await dbHelper.cleanupTestData(testEmail);
+    // Cleanup handled by Supabase auth helpers
   });
 
   test('Complete new user onboarding and first QR code creation', async ({ page }) => {

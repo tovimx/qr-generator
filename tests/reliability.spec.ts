@@ -9,26 +9,23 @@ import { test, expect } from '@playwright/test';
 import { AuthHelper } from './helpers/auth';
 import { QRCodePage } from './helpers/qr-page';
 import { ApiHelper } from './helpers/api';
-import { DatabaseHelper } from './helpers/database';
+import { createTestUser, cleanupTestUser } from './helpers/database';
 import { generateTestEmail } from './helpers/supabase-auth';
 
 test.describe('Reliability Tests', () => {
   let authHelper: AuthHelper;
   let qrPage: QRCodePage;
   let apiHelper: ApiHelper;
-  let dbHelper: DatabaseHelper;
   let testEmail: string;
 
   test.beforeEach(async ({ page, request }) => {
     authHelper = new AuthHelper(page);
     qrPage = new QRCodePage(page);
     apiHelper = new ApiHelper(page, request);
-    dbHelper = new DatabaseHelper(page);
     testEmail = generateTestEmail('reliability');
   });
 
   test.afterEach(async () => {
-    await dbHelper.cleanupTestData(testEmail);
     await apiHelper.clearNetworkMocks();
   });
 

@@ -9,24 +9,22 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelper } from './helpers/auth';
 import { ApiHelper } from './helpers/api';
-import { DatabaseHelper } from './helpers/database';
+import { createTestUser, cleanupTestUser, createTestQRCode } from './helpers/database';
 import { generateTestEmail } from './helpers/supabase-auth';
 
 test.describe('API Integration Tests', () => {
   let authHelper: AuthHelper;
   let apiHelper: ApiHelper;
-  let dbHelper: DatabaseHelper;
   let testEmail: string;
 
   test.beforeEach(async ({ page, request }) => {
     authHelper = new AuthHelper(page);
     apiHelper = new ApiHelper(page, request);
-    dbHelper = new DatabaseHelper(page);
     testEmail = generateTestEmail('api');
   });
 
   test.afterEach(async () => {
-    await dbHelper.cleanupTestData(testEmail);
+    // Cleanup handled by Supabase auth helpers
   });
 
   test('QR Code CRUD operations via API', async ({ page }) => {

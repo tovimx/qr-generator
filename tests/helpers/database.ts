@@ -48,6 +48,7 @@ export async function createTestUser(email: string): Promise<TestUser> {
 
 export async function createTestQRCode(
   projectId: string, 
+  userId: string,
   position: number = 0,
   title: string = `Test QR Code ${position + 1}`
 ): Promise<TestQRCode> {
@@ -55,16 +56,18 @@ export async function createTestQRCode(
   
   const qrCode = await prisma.qRCode.create({
     data: {
+      userId,
       projectId,
       shortCode,
       title,
       position,
       isActive: true,
-      design: {
-        backgroundColor: '#ffffff',
-        textColor: '#000000',
-        theme: 'minimal',
-      }
+      primaryColor: '#6366f1',
+      secondaryColor: '#8b5cf6',
+      backgroundType: 'gradient',
+      buttonStyle: 'rounded',
+      cardStyle: 'floating',
+      fontFamily: 'inter',
     }
   });
 
@@ -110,15 +113,14 @@ export async function addLinksToQRCode(qrCodeId: string, links: Array<{
 export async function simulateScan(qrCodeId: string, scanData: {
   userAgent?: string;
   referer?: string;
-  ipAddress?: string;
+  ipHash?: string;
 }) {
   await prisma.scan.create({
     data: {
       qrCodeId,
       userAgent: scanData.userAgent || 'Test User Agent',
       referer: scanData.referer || 'Direct',
-      ipAddress: scanData.ipAddress || '127.0.0.1',
-      scannedAt: new Date(),
+      ipHash: scanData.ipHash || 'test-ip-hash',
     }
   });
 }
