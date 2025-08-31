@@ -29,24 +29,47 @@ test.describe('Network Failure Simulation', () => {
   test.describe('Complete Network Failure', () => {
     
     test('should handle complete offline scenario gracefully', async ({ page }) => {
-      // Start with network enabled
+      // Start with network enabled and navigate to dashboard
       await page.goto('/login');
       await expect(page).toHaveURL(/\/login/);
+      
+      // Simulate user login first
+      await apiMock.mockAuthenticationSuccess();
+      await page.fill('[data-testid="email"]', 'test@example.com');
+      await page.fill('[data-testid="password"]', 'password123');
+      await page.click('[data-testid="login-button"]');
+      
+      // Wait for dashboard to load
+      await page.waitForURL('/dashboard', { timeout: 10000 });
       
       // Simulate complete network failure
       await page.context().setOffline(true);
       
-      // Try to navigate - should fail gracefully
-      await page.goto('/signup', { timeout: 5000 }).catch(() => {
-        // Expected to fail
+      // Test offline behavior - should show cached content or offline indicator
+      await page.reload({ timeout: 5000 }).catch(() => {
+        // Expected to fail with network offline
       });
+      
+      // Check for offline indicators or cached content
+      const offlineIndicator = page.locator('[data-testid="offline-indicator"], .offline-message');
+      const offlineStatus = await offlineIndicator.isVisible().catch(() => false);
+      
+      // Either offline indicator should be visible OR cached content should still be accessible
+      if (!offlineStatus) {
+        // Check if essential elements are still cached and visible
+        const essentialElement = page.locator('header, .dashboard-header, [data-testid="dashboard-content"]');
+        await expect(essentialElement.first()).toBeVisible();
+      }
       
       // Re-enable network
       await page.context().setOffline(false);
       
       // Should recover and work normally
-      await page.goto('/login');
-      await expect(page).toHaveURL(/\/login/);
+      await page.reload({ timeout: 15000 });
+      await expect(page).toHaveURL(/\/dashboard/);
+      
+      // Verify functionality is restored
+      await expect(page.locator('[data-testid="qr-tabs"], .tab-container')).toBeVisible({ timeout: 10000 });
     });
     
     test('should show appropriate offline messages', async ({ page }) => {
