@@ -208,10 +208,10 @@ test.describe('QR Code Generator - Realistic User Workflows', () => {
       await expect(page.locator('body')).toBeVisible({ timeout: 15000 });
     });
 
-    test('should handle JavaScript disabled gracefully', async ({ page, context }) => {
-      // Create a new page with JavaScript disabled
+    test('should handle JavaScript disabled gracefully', async ({ browser }) => {
+      // Create a new context with JavaScript disabled
+      const context = await browser.newContext({ javaScriptEnabled: false });
       const jsDisabledPage = await context.newPage();
-      await jsDisabledPage.context().setJavaScriptEnabled(false);
       
       await jsDisabledPage.goto('/');
       
@@ -219,7 +219,7 @@ test.describe('QR Code Generator - Realistic User Workflows', () => {
       const bodyText = await jsDisabledPage.locator('body').textContent();
       expect(bodyText?.trim().length).toBeGreaterThan(0);
       
-      await jsDisabledPage.close();
+      await context.close();
     });
   });
 
@@ -332,7 +332,7 @@ test.describe('QR Code Generator - Realistic User Workflows', () => {
 
   test.describe('Cross-Browser Compatibility', () => {
     
-    test('should work consistently across different user agents', async ({ page, context }) => {
+    test('should work consistently across different user agents', async ({ browser }) => {
       const userAgents = [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -340,11 +340,12 @@ test.describe('QR Code Generator - Realistic User Workflows', () => {
       ];
       
       for (const userAgent of userAgents) {
-        const newPage = await context.newPage({ userAgent });
+        const context = await browser.newContext({ userAgent });
+        const newPage = await context.newPage();
         await newPage.goto('/');
         
         await expect(newPage.locator('body')).toBeVisible();
-        await newPage.close();
+        await context.close();
       }
     });
   });
