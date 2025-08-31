@@ -26,7 +26,7 @@ export interface TestMetrics {
 export interface PerformanceMetrics {
   pageLoadTime: number;
   qrGenerationTime?: number;
-  memoryUsage?: unknown;
+  memoryUsage?: Record<string, number> | null;
   networkRequests: number;
   largestContentfulPaint?: number;
   firstContentfulPaint?: number;
@@ -154,7 +154,7 @@ export class TestReporter {
         firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
         largestContentfulPaint: 0, // Would need additional measurement
         cumulativeLayoutShift: 0,  // Would need additional measurement
-        memoryUsage: (performance as unknown).memory || null
+        memoryUsage: (performance as unknown as {memory: Record<string, number>})['memory'] || null
       };
     });
 

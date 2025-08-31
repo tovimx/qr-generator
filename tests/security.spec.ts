@@ -208,7 +208,7 @@ test.describe('Security Tests', () => {
       await page.goto('/dashboard');
 
       // Intercept API requests to check for CSRF tokens
-      const apiRequests: unknown[] = [];
+      const apiRequests: Array<{url: string, method: string, headers: Record<string, string>}> = [];
       page.on('request', (request) => {
         if (request.url().includes('/api/')) {
           apiRequests.push({
@@ -296,7 +296,7 @@ test.describe('Security Tests', () => {
       // Check for exposed data in window object
       const exposedSecrets = await page.evaluate(() => {
         const secrets: string[] = [];
-        const checkObject = (obj: unknown, path = 'window') => {
+        const checkObject = (obj: Record<string, unknown>, path = 'window') => {
           for (const key in obj) {
             if (typeof key === 'string' && /password|secret|key|token/i.test(key)) {
               secrets.push(`${path}.${key}`);
@@ -304,7 +304,7 @@ test.describe('Security Tests', () => {
           }
         };
         
-        checkObject(window);
+        checkObject(window as unknown as Record<string, unknown>);
         return secrets;
       });
 
@@ -433,7 +433,7 @@ test.describe('Security Tests', () => {
       });
 
       const scriptExecuted = await page.evaluate(() => 
-        !!(window as unknown).testXSS
+        !!(window as unknown as Record<string, unknown>)['testXSS']
       );
 
       // Script should not have executed if CSP is properly configured
