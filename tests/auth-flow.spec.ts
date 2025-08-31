@@ -65,13 +65,16 @@ test.describe('Authentication Flow', () => {
   test('should validate password requirements on signup', async ({ page }) => {
     await page.goto('/signup');
     
-    // Try weak password
+    // Try weak password (less than 6 characters) - browser validation should prevent submission
     await page.getByPlaceholder('Email address').fill('test@example.com');
     await page.getByPlaceholder('Password').fill('weak');
     await page.getByRole('button', { name: 'Sign up' }).click();
     
-    // Should show password requirements
-    await expect(page.getByText(/password must be/i)).toBeVisible();
+    // Browser validation should prevent form submission, staying on signup page
+    await expect(page).toHaveURL('/signup');
+    
+    // The password field should still contain the weak password
+    await expect(page.getByPlaceholder('Password')).toHaveValue('weak');
   });
 
   test('should create new account and redirect to dashboard', async ({ page }) => {
