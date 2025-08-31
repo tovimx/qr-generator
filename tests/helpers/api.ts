@@ -39,7 +39,7 @@ export class ApiHelper {
       .map(cookie => `${cookie.name}=${cookie.value}`)
       .join('; ');
 
-    const response = await this.apiContext.fetch(`http://localhost:3000/api${endpoint}`, {
+    const response = await this.apiContext.fetch(`http://localhost:3004/api${endpoint}`, {
       method,
       headers: {
         'Cookie': cookieHeader,
@@ -101,7 +101,7 @@ export class ApiHelper {
    * Test analytics endpoints
    */
   async recordScan(shortCode: string, scanData: any): Promise<ApiResponse> {
-    return this.apiContext.fetch(`http://localhost:3000/api/qr/${shortCode}`, {
+    return this.apiContext.fetch(`http://localhost:3004/api/qr/${shortCode}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: JSON.stringify(scanData)
