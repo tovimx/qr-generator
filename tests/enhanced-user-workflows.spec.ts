@@ -86,7 +86,7 @@ test.describe('Enhanced User Workflows', () => {
       }
       
     } catch (error) {
-      console.log('⚠️ UI interaction limited, but mock auth working:', error.message);
+      console.log('⚠️ UI interaction limited, but mock auth working:', (error as Error).message);
     }
     
     // Verify we're still on dashboard
@@ -112,7 +112,7 @@ test.describe('Enhanced User Workflows', () => {
       expect(metrics.pageLoadTime).toBeLessThan(5000);
       console.log(`✅ Dashboard load time: ${metrics.pageLoadTime}ms`);
     } catch (error) {
-      console.log('⚠️ Performance measurement limited:', error.message);
+      console.log('⚠️ Performance measurement limited:', (error as Error).message);
     }
     
     console.log(`✅ Performance test completed in ${loadTime}ms`);
@@ -136,7 +136,7 @@ test.describe('Enhanced User Workflows', () => {
         console.log(`✅ Long title handling: ${inputValue.length} chars`);
       }
     } catch (error) {
-      console.log('⚠️ Title input not available:', error.message);
+      console.log('⚠️ Title input not available:', (error as Error).message);
     }
     
     // Test special characters in title
@@ -151,7 +151,7 @@ test.describe('Enhanced User Workflows', () => {
         console.log('✅ Unicode characters handled');
       }
     } catch (error) {
-      console.log('⚠️ Unicode test limited:', error.message);
+      console.log('⚠️ Unicode test limited:', (error as Error).message);
     }
     
     console.log('✅ Edge case data handling completed');

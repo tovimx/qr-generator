@@ -301,7 +301,7 @@ test.describe('Robust E2E Test Suite', () => {
     if (isDev) {
       // In dev mode, we might see webpack HMR indicators
       const devIndicators = await page.evaluate(() => {
-        return window.__webpack_require__ !== undefined ||
+        return (window as any).__webpack_require__ !== undefined ||
                document.querySelector('script[src*="webpack"]') !== null;
       });
       
