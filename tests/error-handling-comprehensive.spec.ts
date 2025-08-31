@@ -414,11 +414,11 @@ test.describe('Comprehensive Error Handling', () => {
 
     for (let i = 0; i < concurrentUsers; i++) {
       const userPromise = (async () => {
+        const userId = `user${i + 1}`;
         const context = await browser.newContext();
         const page = await context.newPage();
         
         try {
-          const userId = `user${i + 1}`;
           console.log(`${userId}: Starting concurrent test`);
           
           await page.goto('/login');

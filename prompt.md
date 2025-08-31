@@ -17,3 +17,9 @@ Spend your time as follows:
 - **60% on writing comprehensive E2E tests** covering critical user paths, integration endpoints, error handling, network failures, performance tests.
 - **25% on testing infrastructure and tooling** (setup, CI/CD, reporting, reusable test utilities)
 - **15% on test maintenance and documentation** (fixing flaky tests, test reports, coverage metrics, README updates)
+
+Please do not focus on: (remove if necessary)
+
+- Accessibility compliance testing functional
+- Cross-browser compatibility
+- mobile testing

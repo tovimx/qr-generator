@@ -13,7 +13,7 @@ test.describe('Authentication - Working Implementation', () => {
       try {
         localStorage.clear();
         sessionStorage.clear();
-      } catch (e) {
+      } catch {
         // Ignore localStorage access errors
         console.log('Storage access denied, continuing without clearing');
       }
