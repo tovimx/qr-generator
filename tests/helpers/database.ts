@@ -3,6 +3,8 @@
  * Handles test data setup, cleanup, and database state management
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import type { Page } from '@playwright/test';
 
 export interface TestUser {

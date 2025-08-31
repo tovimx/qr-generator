@@ -3,6 +3,8 @@
  * Tests complete user workflows from signup to QR code usage
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { test, expect } from '@playwright/test';
 import { AuthHelper } from './helpers/auth';
 import { QRCodePage } from './helpers/qr-page';

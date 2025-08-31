@@ -3,6 +3,9 @@
  * Measures page load times, API response times, and user interaction performance
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
@@ -52,8 +55,8 @@ export class PerformanceHelper {
             name: entry.name,
             duration: entry.duration,
             transferSize: (entry as any).transferSize || 0,
-            responseStart: entry.responseStart,
-            responseEnd: entry.responseEnd
+            responseStart: (entry as any).responseStart || 0,
+            responseEnd: (entry as any).responseEnd || 0
           });
         }
       });

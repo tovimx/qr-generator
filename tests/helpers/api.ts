@@ -3,6 +3,8 @@
  * Handles direct API calls, network mocking, and response validation
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { Page, APIRequestContext } from '@playwright/test';
 import { expect } from '@playwright/test';
 
@@ -57,7 +59,7 @@ export class ApiHelper {
     return {
       status: response.status(),
       data: responseData,
-      headers: Object.fromEntries(response.headers())
+      headers: Object.fromEntries(response.headersArray().map(h => [h.name, h.value]))
     };
   }
 
@@ -132,7 +134,8 @@ export class ApiHelper {
     
     if (response.status >= 200 && response.status < 300 && requiredFields) {
       for (const field of requiredFields) {
-        expect(response.data).toHaveProperty(field);
+        expect(response.data).toBeDefined();
+        expect(Object.prototype.hasOwnProperty.call(response.data, field)).toBe(true);
       }
     }
   }

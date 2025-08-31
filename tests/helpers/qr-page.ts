@@ -3,6 +3,8 @@
  * Provides high-level methods for interacting with QR code functionality
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { Page, Locator } from '@playwright/test';
 import { expect } from '@playwright/test';
 
@@ -38,7 +40,7 @@ export class QRCodePage {
   constructor(private page: Page) {
     // Initialize locators
     this.qrCodeDisplay = page.locator('[data-testid="qr-code-display"]').or(page.locator('canvas').first());
-    this.shortLinkDisplay = page.locator('[data-testid="short-link"]').or(page.locator('text=/\\/q\\//'));
+    this.shortLinkDisplay = page.locator('[data-testid="short-link"]').or(page.locator(':text("/q/")'));
     this.titleInput = page.locator('[data-testid="qr-title"]').or(page.getByPlaceholder(/title/i));
     this.addLinkButton = page.locator('[data-testid="add-link-button"]').or(page.getByRole('button', { name: /add link/i }));
     this.linkTitleInput = page.getByPlaceholder(/title/i);
@@ -82,7 +84,7 @@ export class QRCodePage {
   async getShortLink(): Promise<string> {
     await expect(this.shortLinkDisplay).toBeVisible();
     const text = await this.shortLinkDisplay.textContent();
-    const match = text?.match(/\\/q\\/[a-zA-Z0-9]+/);
+    const match = text?.match(/\/q\/[a-zA-Z0-9]+/);
     return match?.[0] || '';
   }
 
