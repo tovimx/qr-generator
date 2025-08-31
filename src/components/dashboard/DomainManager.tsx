@@ -110,7 +110,7 @@ export default function DomainManager() {
                         {!d.primary && (
                           <button
                             onClick={() => setPrimary(d.id)}
-                            className="px-3 py-1 text-xs rounded-md bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                            className="px-3 py-1 text-xs rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 hover:text-gray-900 cursor-pointer"
                           >
                             Set Primary
                           </button>

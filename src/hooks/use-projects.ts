@@ -64,7 +64,7 @@ export const useCreateProject = () => {
     },
     onMutate: async (name: string) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: queryKeys.projects.lists() })
+      await queryClient.cancelQueries({ queryKey: queryKeys.projects.all })
 
       // Snapshot the previous value
       const previousProjects = queryClient.getQueryData<ProjectWithStats[]>(
@@ -106,6 +106,7 @@ export const useCreateProject = () => {
     onSettled: () => {
       // Always refetch after mutation
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.lists() })
     },
   })
 }

@@ -95,7 +95,6 @@ export default function SimpleProjectDashboard({
       setSelectedProject(newProject)
       showSuccess(`Project "${name}" created successfully!`)
     } catch (error) {
-      console.error('Error creating project:', error)
       showError(error instanceof Error ? error.message : 'Failed to create project')
     }
   }

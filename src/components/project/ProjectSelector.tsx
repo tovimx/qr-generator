@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, Plus, FolderOpen, QrCode, TrendingUp, Clock, Edit3, Check, X } from 'lucide-react'
+import { ChevronDown, Plus, FolderOpen, QrCode, TrendingUp, Clock } from 'lucide-react'
 import { ProjectWithStats } from '@/types/qr-code'
 
 interface ProjectSelectorProps {
@@ -22,33 +22,38 @@ export default function ProjectSelector({
   const [isOpen, setIsOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setIsOpen(false)
-      setIsCreating(false)
-      setIsEditingName(false)
-      setEditingProjectId(null)
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      
+      // If click is outside the dropdown component, close it
+      if (target && !target.closest('[data-project-selector]')) {
+        setIsOpen(false)
+        setIsCreating(false)
+      }
     }
 
-    if (isOpen || isCreating || isEditingName) {
+    if (isOpen || isCreating) {
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
     }
     return undefined
-  }, [isOpen, isCreating, isEditingName])
+  }, [isOpen, isCreating])
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault()
     if (newProjectName.trim()) {
-      await onProjectCreate(newProjectName.trim())
-      setNewProjectName('')
-      setIsCreating(false)
-      setIsOpen(false)
+      try {
+        await onProjectCreate(newProjectName.trim())
+        setNewProjectName('')
+        setIsCreating(false)
+        setIsOpen(false)
+      } catch (error) {
+        // Error handling is done in parent component (SimpleProjectDashboard)
+        // Don't close the form on error so user can try again
+      }
     }
   }
 
@@ -69,7 +74,10 @@ export default function ProjectSelector({
   }
 
   return (
-    <div className={`relative ${className}`} onClick={(e) => e.stopPropagation()}>
+    <div 
+      className={`relative ${className}`}
+      data-project-selector
+    >
       {/* Main Selector Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -120,7 +128,6 @@ export default function ProjectSelector({
             ) : (
               projects.map((project) => {
                 const status = getProjectStatus(project)
-                const isEditing = editingProjectId === project.id
 
                 return (
                   <div
@@ -146,80 +153,36 @@ export default function ProjectSelector({
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            {isEditing ? (
-                              <form 
-                                onSubmit={(e) => {
-                                  e.preventDefault()
-                                  // Handle edit submission here
-                                  setEditingProjectId(null)
-                                }}
-                                className="flex items-center space-x-2"
-                              >
-                                <input
-                                  type="text"
-                                  value={editName}
-                                  onChange={(e) => setEditName(e.target.value)}
-                                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                  autoFocus
-                                />
-                                <button type="submit" className="p-1 text-emerald-600 hover:bg-emerald-100 rounded">
-                                  <Check className="w-4 h-4" />
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => setEditingProjectId(null)}
-                                  className="p-1 text-gray-500 hover:bg-gray-100 rounded"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </form>
-                            ) : (
-                              <>
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium text-gray-900 truncate">
-                                    {project.name}
-                                  </span>
-                                  {project.isDefault && (
-                                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                      Default
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                                  <span className="flex items-center">
-                                    <QrCode className="w-3 h-3 mr-1" />
-                                    {project.qrCodeCount}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <TrendingUp className="w-3 h-3 mr-1" />
-                                    {project.totalScans.toLocaleString()}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    {formatLastActivity(project.lastActivity)}
-                                  </span>
-                                  <span className={`px-2 py-0.5 rounded-full text-xs ${status.bgColor} ${status.color}`}>
-                                    {status.text}
-                                  </span>
-                                </div>
-                              </>
-                            )}
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-900 truncate">
+                                {project.name}
+                              </span>
+                              {project.isDefault && (
+                                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                              <span className="flex items-center">
+                                <QrCode className="w-3 h-3 mr-1" />
+                                {project.qrCodeCount}
+                              </span>
+                              <span className="flex items-center">
+                                <TrendingUp className="w-3 h-3 mr-1" />
+                                {project.totalScans.toLocaleString()}
+                              </span>
+                              <span className="flex items-center">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {formatLastActivity(project.lastActivity)}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs ${status.bgColor} ${status.color}`}>
+                                {status.text}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      
-                      {!isEditing && !project.isDefault && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setEditingProjectId(project.id)
-                            setEditName(project.name)
-                          }}
-                          className="ml-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
                   </div>
                 )
@@ -230,8 +193,8 @@ export default function ProjectSelector({
           {/* Create New Project */}
           <div className="border-t border-gray-200 bg-gray-50">
             {isCreating ? (
-              <form onSubmit={handleCreateProject} className="px-4 py-3">
-                <div className="flex items-center space-x-2">
+              <div className="px-4 py-3">
+                <form onSubmit={handleCreateProject} className="flex items-center space-x-2">
                   <input
                     type="text"
                     value={newProjectName}
@@ -240,6 +203,7 @@ export default function ProjectSelector({
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     autoFocus
                     maxLength={50}
+                    required
                   />
                   <button
                     type="submit"
@@ -255,8 +219,8 @@ export default function ProjectSelector({
                   >
                     Cancel
                   </button>
-                </div>
-              </form>
+                </form>
+              </div>
             ) : (
               <button
                 onClick={(e) => {

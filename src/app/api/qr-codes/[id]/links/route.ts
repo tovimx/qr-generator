@@ -26,9 +26,8 @@ export async function PUT(
     const qrCode = await prisma.qRCode.findFirst({
       where: {
         id,
-        user: {
-          email: user.email
-        }
+        userId: user.id,
+        deletedAt: null
       }
     })
 

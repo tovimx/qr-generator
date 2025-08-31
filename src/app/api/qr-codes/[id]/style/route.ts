@@ -18,16 +18,15 @@ export async function PUT(
 
     // Verify ownership
     const qrCode = await prisma.qRCode.findUnique({
-      where: { id },
-      include: { user: true }
+      where: { 
+        id,
+        userId: user.id,
+        deletedAt: null
+      }
     })
 
     if (!qrCode) {
       return NextResponse.json({ error: 'QR code not found' }, { status: 404 })
-    }
-
-    if (qrCode.user.email !== user.email) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const body = await request.json()
