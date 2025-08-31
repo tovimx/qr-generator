@@ -165,7 +165,7 @@ test.describe('Multi-QR Dashboard Tests', () => {
     }
     
     // Look for title input field
-    const titleInput = page.getByPlaceholder(/title/i).or(page.getByDisplayValue(/qr code/i));
+    const titleInput = page.getByPlaceholder(/title/i).or(page.locator('input[value*="QR Code"]'));
     if (await titleInput.isVisible()) {
       await titleInput.clear();
       await titleInput.fill('My Custom QR Code');

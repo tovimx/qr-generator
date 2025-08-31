@@ -117,7 +117,7 @@ test.describe('Performance and Load Tests', () => {
       const qrTabs = page.locator('[data-testid="qr-tab"]');
       if (await qrTabs.count() > 1) {
         await qrTabs.nth(0).click();
-        await qrTabs.nth(qrTabs.count() - 1).click();
+        await qrTabs.nth((await qrTabs.count()) - 1).click();
       }
       
       const responsiveTime = Date.now() - startTime;

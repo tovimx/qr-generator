@@ -206,7 +206,7 @@ test.describe('Project Management Tests', () => {
         // Try double-click to edit
         await projectTab.dblclick();
         
-        const nameInput = page.getByPlaceholder(/project.*name/i).or(page.getByDisplayValue(/default/i));
+        const nameInput = page.getByPlaceholder(/project.*name/i).or(page.locator('input[value*="Default"]'));
         if (await nameInput.isVisible()) {
           await nameInput.clear();
           await nameInput.fill('Double-Click Renamed');
