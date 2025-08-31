@@ -3,7 +3,7 @@
  * Tests all API endpoints with proper authentication, data validation, and error handling
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, APIResponse } from '@playwright/test';
 import { SecurityTestHelper, PerformanceMonitor } from './helpers/advanced-test-utilities';
 
 test.describe('API Integration - Authentication & Authorization', () => {
@@ -589,7 +589,7 @@ test.describe('API Integration - Security Testing', () => {
     
     const results = await Promise.allSettled(rapidRequests);
     const responses = results
-      .filter((r): r is PromiseFulfilledResult<Response> => r.status === 'fulfilled')
+      .filter((r): r is PromiseFulfilledResult<APIResponse> => r.status === 'fulfilled')
       .map(r => r.value);
     
     const statusCounts = responses.reduce((counts, response) => {
