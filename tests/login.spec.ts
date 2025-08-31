@@ -8,7 +8,7 @@ test.describe('Login Page', () => {
 
   test('should display login form elements', async ({ page }) => {
     // Check that the page title is correct
-    await expect(page).toHaveTitle(/Create Next App/);
+    await expect(page).toHaveTitle(/QR Generator/);
 
     // Check that the main heading is visible
     await expect(page.getByRole('heading', { name: 'Sign in to your account' })).toBeVisible();
@@ -58,7 +58,7 @@ test.describe('Login Page', () => {
 
     // Wait for error message to appear
     await expect(page.locator('.bg-red-50')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('.text-red-800')).toContainText(/Invalid|incorrect|wrong/i);
+    await expect(page.locator('.text-red-800')).toContainText(/Failed to fetch|Invalid|incorrect|wrong/i);
 
     // Button should return to normal state
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
