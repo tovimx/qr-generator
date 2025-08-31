@@ -10,8 +10,13 @@ test.describe('Authentication - Working Implementation', () => {
     // Clear any existing auth state
     await page.context().clearCookies();
     await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (e) {
+        // Ignore localStorage access errors
+        console.log('Storage access denied, continuing without clearing');
+      }
     });
   });
 
