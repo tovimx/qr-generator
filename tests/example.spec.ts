@@ -6,7 +6,7 @@ test.describe('QR Generator App - Basic Navigation', () => {
     await page.goto('/');
 
     // Check that the page loads successfully
-    await expect(page).toHaveTitle(/Create Next App/);
+    await expect(page).toHaveTitle(/QR Generator/);
 
     // Example: Check for common homepage elements
     // (These would need to be updated based on your actual homepage content)
