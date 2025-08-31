@@ -3,7 +3,7 @@
  * Generates comprehensive test reports with metrics, trends, and insights
  */
 
-import { Page, TestResult } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { writeFileSync, existsSync, readFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -284,8 +284,8 @@ export class TestReporter {
     const summary: TestReportSummary = {
       timestamp: new Date(),
       environment: process.env.NODE_ENV || 'test',
-      commit: process.env.GITHUB_SHA || 'unknown',
-      branch: process.env.GITHUB_REF_NAME || 'unknown',
+      commit: process.env['GITHUB_SHA'] || 'unknown',
+      branch: process.env['GITHUB_REF_NAME'] || 'unknown',
       totalTests,
       totalPassed,
       totalFailed,

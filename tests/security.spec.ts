@@ -263,7 +263,7 @@ test.describe('Security Tests', () => {
           });
           return { status: result.status, ok: result.ok };
         } catch (error) {
-          return { error: error.message };
+          return { error: error instanceof Error ? error.message : 'Unknown error' };
         }
       });
 
@@ -295,7 +295,7 @@ test.describe('Security Tests', () => {
 
       // Check for exposed data in window object
       const exposedSecrets = await page.evaluate(() => {
-        const secrets = [];
+        const secrets: string[] = [];
         const checkObject = (obj: any, path = 'window') => {
           for (const key in obj) {
             if (typeof key === 'string' && /password|secret|key|token/i.test(key)) {

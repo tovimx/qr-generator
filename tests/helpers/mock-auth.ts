@@ -146,4 +146,12 @@ export class MockAuthHelper {
     await this.setupAuthMocks();
     await this.page.goto('/dashboard');
   }
+
+  /**
+   * Set up mock authentication with default test user
+   */
+  async mockAuthentication() {
+    await this.mockLogin();
+    await this.setupAuthMocks();
+  }
 }
