@@ -3,7 +3,7 @@
  * Tests direct API endpoints and integration scenarios
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { test, expect } from '@playwright/test';

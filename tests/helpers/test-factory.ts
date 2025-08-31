@@ -438,10 +438,10 @@ export class PerformanceTestHelper {
     return Date.now() - startTime;
   }
 
-  async measureMemoryUsage(): Promise<any> {
+  async measureMemoryUsage(): Promise<unknown> {
     return await this.page.evaluate(() => {
       if ('memory' in performance) {
-        return (performance as any).memory;
+        return (performance as unknown).memory;
       }
       return null;
     });
