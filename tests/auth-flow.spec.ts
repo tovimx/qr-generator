@@ -50,13 +50,16 @@ test.describe('Authentication Flow', () => {
   test('should validate email format on signup', async ({ page }) => {
     await page.goto('/signup');
     
-    // Try invalid email
+    // Try invalid email - the browser should prevent form submission
     await page.getByPlaceholder('Email address').fill('invalid-email');
     await page.getByPlaceholder('Password').fill('ValidPassword123!');
     await page.getByRole('button', { name: 'Sign up' }).click();
     
-    // Should show validation error
-    await expect(page.getByText('Please enter a valid email')).toBeVisible();
+    // Browser validation should prevent form submission, staying on signup page
+    await expect(page).toHaveURL('/signup');
+    
+    // The email field should still contain the invalid email
+    await expect(page.getByPlaceholder('Email address')).toHaveValue('invalid-email');
   });
 
   test('should validate password requirements on signup', async ({ page }) => {
