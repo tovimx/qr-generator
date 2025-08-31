@@ -88,11 +88,15 @@ test.describe('Analytics Functionality', () => {
 
 test.describe('API Endpoints', () => {
   test('should have working API health check', async ({ page }) => {
-    // Test that your API endpoints are accessible
+    // Test that API endpoints are accessible and return expected auth errors
     const response = await page.request.get('/api/qr-codes');
     
-    // Should return 405 since this endpoint only accepts POST
-    expect(response.status()).toBe(405);
+    // Should return 401 since authentication is required (checked before method validation)
+    expect(response.status()).toBe(401);
+    
+    // Verify the error message
+    const responseBody = await response.json();
+    expect(responseBody.error).toBe('Unauthorized');
   });
 
   test('should require authentication for QR code creation', async ({ page }) => {
