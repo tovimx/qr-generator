@@ -18,7 +18,7 @@ Spend your time as follows:
 - **25% on testing infrastructure and tooling** (setup, CI/CD, reporting, reusable test utilities)
 - **15% on test maintenance and documentation** (fixing flaky tests, test reports, coverage metrics, README updates)
 
-Please do not focus on: (remove if necessary)
+Please do not focus on: (remove if they exists)
 
 - Accessibility compliance testing functional
 - Cross-browser compatibility
