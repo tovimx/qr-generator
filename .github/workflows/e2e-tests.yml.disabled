@@ -135,7 +135,7 @@ jobs:
         run: npm run build
 
       - name: Run smoke tests
-        run: npx playwright test tests/qr-creation.spec.ts tests/multi-qr-dashboard.spec.ts --project=chromium --reporter=github
+        run: npx playwright test tests/master-e2e-suite.spec.ts tests/production-ready-e2e-final.spec.ts --project=chromium --reporter=github
         env:
           CI: true
 

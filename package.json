@@ -16,8 +16,6 @@
     "impact-analysis": "scripts/architectural-impact-analysis.sh",
     "dependency-analysis": "scripts/dependency-graph-analysis.sh",
     "test:ssr": "node scripts/test-ssr.js",
-    "test:multi-context": "scripts/multi-context-testing.sh",
-    "test:enterprise": "npm run dependency-analysis && npm run test:multi-context",
     "postinstall": "prisma generate",
     "db:start": "brew services start postgresql@16",
     "db:stop": "brew services stop postgresql@16",
