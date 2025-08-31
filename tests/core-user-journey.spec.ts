@@ -68,8 +68,8 @@ test.describe('Core User Journey - Complete Flow', () => {
     await page.goto('/login');
     
     // Use environment variable for test user or create one
-    const testEmail = process.env.E2E_TEST_EMAIL || 'test@example.com';
-    const testPassword = process.env.E2E_TEST_PASSWORD || 'TestPassword123!';
+    const testEmail = process.env['E2E_TEST_EMAIL'] || 'test@example.com';
+    const testPassword = process.env['E2E_TEST_PASSWORD'] || 'TestPassword123!';
     
     await page.getByPlaceholder('Email address').fill(testEmail);
     await page.getByPlaceholder('Password').fill(testPassword);
