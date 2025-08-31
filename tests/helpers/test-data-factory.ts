@@ -3,7 +3,7 @@
  * Creates realistic test data for comprehensive E2E testing
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 export interface TestUser {
   email: string;

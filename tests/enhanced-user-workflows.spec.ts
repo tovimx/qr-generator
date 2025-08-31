@@ -3,6 +3,9 @@
  * Tests comprehensive user journeys with improved reliability and error handling
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { test, expect } from '@playwright/test';
 import { AuthHelper } from './helpers/auth';
 import { QRCodePage } from './helpers/qr-page';

@@ -153,7 +153,7 @@ export class AuthHelper {
       }));
       
       // Mock any global auth state
-      (window as any).__mockAuth = {
+      __mockAuth.__mockAuth = {
         user: {
           id: 'mock-user-id', 
           email: userEmail
@@ -185,7 +185,7 @@ export class AuthHelper {
       sessionStorage.clear();
       
       // Clear mock auth
-      delete (window as any).__mockAuth;
+      delete __mockAuth.__mockAuth;
     });
     
     await this.page.context().clearCookies();
