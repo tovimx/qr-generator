@@ -3,7 +3,7 @@
  * Tests all API endpoints with proper authentication, data validation, and error handling
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { SecurityTestHelper, PerformanceMonitor } from './helpers/advanced-test-utilities';
 
 test.describe('API Integration - Authentication & Authorization', () => {
@@ -362,7 +362,7 @@ test.describe('API Integration - Projects & Organization', () => {
 test.describe('API Integration - Performance & Reliability', () => {
 
   test('API response times under normal load', async ({ request }) => {
-    const performanceMonitor = new PerformanceMonitor({} as any); // Mock page for metrics only
+    const performanceMonitor = new PerformanceMonitor({} as Page); // Mock page for metrics only
     
     const endpoints = [
       '/api/qr/test123',
@@ -394,7 +394,7 @@ test.describe('API Integration - Performance & Reliability', () => {
     expect(avgResponseTime).toBeLessThan(2000); // 2 second average
   });
 
-  test('API handles concurrent requests properly', async ({ request, browser }) => {
+  test('API handles concurrent requests properly', async ({ request }) => {
     const testEndpoint = '/api/qr/concurrent-test';
     const concurrentRequests = 10;
     
@@ -526,8 +526,7 @@ test.describe('API Integration - Performance & Reliability', () => {
 
 test.describe('API Integration - Security Testing', () => {
 
-  test('API security vulnerability assessment', async ({ page, request }) => {
-    const securityHelper = new SecurityTestHelper(page);
+  test('API security vulnerability assessment', async ({ request }) => {
     
     // Test common API security issues
     const sqlInjectionPayloads = [
@@ -590,7 +589,7 @@ test.describe('API Integration - Security Testing', () => {
     
     const results = await Promise.allSettled(rapidRequests);
     const responses = results
-      .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+      .filter((r): r is PromiseFulfilledResult<Response> => r.status === 'fulfilled')
       .map(r => r.value);
     
     const statusCounts = responses.reduce((counts, response) => {
