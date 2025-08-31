@@ -42,18 +42,31 @@ export default async function DashboardPage() {
   }
 
   // Get projects with stats
-  const projects = await prisma.project.findMany({
-    where: { clientId: client.id },
-    include: {
-      _count: {
-        select: { qrCodes: { where: { deletedAt: null } } }
-      }
-    },
-    orderBy: [
-      { isDefault: 'desc' },
-      { createdAt: 'asc' }
-    ]
-  })
+  let projects
+  try {
+    projects = await prisma.project.findMany({
+      where: { clientId: client.id },
+      include: {
+        _count: {
+          select: { qrCodes: { where: { deletedAt: null } } }
+        }
+      },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'asc' }
+      ]
+    })
+  } catch (error) {
+    console.error('Failed to fetch projects:', error)
+    // Fallback: fetch projects without complex count operations
+    projects = await prisma.project.findMany({
+      where: { clientId: client.id },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'asc' }
+      ]
+    })
+  }
 
   // Ensure default project exists
   if (projects.length === 0) {
@@ -75,51 +88,75 @@ export default async function DashboardPage() {
   // Transform projects with stats
   const projectsWithStats = await Promise.all(
     projects.map(async (project) => {
-      const qrCodes = await prisma.qRCode.findMany({
-        where: {
-          projectId: project.id,
-          deletedAt: null
-        },
-        include: {
-          _count: {
-            select: { scans: true }
+      try {
+        const qrCodes = await prisma.qRCode.findMany({
+          where: {
+            projectId: project.id,
+            deletedAt: null
+          },
+          include: {
+            _count: {
+              select: { scans: true }
+            }
           }
+        })
+
+        const totalScans = qrCodes.reduce((sum, qr) => sum + qr._count.scans, 0)
+        const activeQRs = qrCodes.filter(qr => qr.isActive).length
+
+        return {
+          ...project,
+          qrCodeCount: qrCodes.length,
+          activeQRCount: activeQRs,
+          totalScans,
+          lastActivity: qrCodes.length > 0 ? 
+            Math.max(...qrCodes.map(qr => new Date(qr.updatedAt).getTime())) : 
+            new Date(project.updatedAt).getTime(),
+          _count: { qrCodes: qrCodes.length }
         }
-      })
-
-      const totalScans = qrCodes.reduce((sum, qr) => sum + qr._count.scans, 0)
-      const activeQRs = qrCodes.filter(qr => qr.isActive).length
-
-      return {
-        ...project,
-        qrCodeCount: qrCodes.length,
-        activeQRCount: activeQRs,
-        totalScans,
-        lastActivity: qrCodes.length > 0 ? 
-          Math.max(...qrCodes.map(qr => new Date(qr.updatedAt).getTime())) : 
-          new Date(project.updatedAt).getTime()
+      } catch (error) {
+        console.error(`Failed to fetch QR codes for project ${project.id}:`, error)
+        // Return project with default stats if QR code queries fail
+        return {
+          ...project,
+          qrCodeCount: 0,
+          activeQRCount: 0,
+          totalScans: 0,
+          lastActivity: new Date(project.updatedAt).getTime(),
+          _count: { qrCodes: 0 }
+        }
       }
     })
   )
 
   // Get initial QR codes for default project
   const defaultProject = projectsWithStats.find(p => p.isDefault) || projectsWithStats[0]
-  const initialQRCodes = defaultProject ? await prisma.qRCode.findMany({
-    where: {
-      projectId: defaultProject.id,
-      deletedAt: null
-    },
-    include: {
-      links: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let initialQRCodes = [] as any
+  
+  if (defaultProject) {
+    try {
+      initialQRCodes = await prisma.qRCode.findMany({
+        where: {
+          projectId: defaultProject.id,
+          deletedAt: null
+        },
+        include: {
+          links: {
+            orderBy: { position: 'asc' }
+          },
+          project: true,
+          _count: {
+            select: { scans: true }
+          }
+        },
         orderBy: { position: 'asc' }
-      },
-      project: true,
-      _count: {
-        select: { scans: true }
-      }
-    },
-    orderBy: { position: 'asc' }
-  }) : []
+      })
+    } catch (error) {
+      console.error('Failed to fetch initial QR codes:', error)
+      initialQRCodes = []
+    }
+  }
 
   return (
     <QueryProvider>
