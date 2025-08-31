@@ -395,10 +395,13 @@ test.describe('Production-Ready E2E Test Suite', () => {
     console.log('Real-world error scenarios test completed');
   });
 
-  test('Mobile-first user experience', async ({ page }) => {
+  test('Mobile-first user experience', async ({ browser }) => {
     // Simulate mobile device
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15');
+    const context = await browser.newContext({
+      viewport: { width: 375, height: 667 },
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15'
+    });
+    const page = await context.newPage();
     
     const helper = new AdvancedTestHelper(page);
     
@@ -447,6 +450,7 @@ test.describe('Production-Ready E2E Test Suite', () => {
     }
     
     console.log('Mobile-first user experience test completed');
+    await context.close();
   });
 
   test('API integration and data flow', async ({ request, page }) => {
