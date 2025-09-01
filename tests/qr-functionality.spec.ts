@@ -87,7 +87,7 @@ test.describe('Analytics Functionality', () => {
         // Check for tracking data attributes  
         document.querySelector('[data-track]') !== null ||
         // Check for Google Analytics or similar
-        window.gtag !== undefined ||
+        (window as any).gtag !== undefined ||
         // At minimum, the page should load without errors
         document.body !== null
       );
