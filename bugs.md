@@ -118,39 +118,42 @@ The `deploy-preview` job in `.github/workflows/vercel-deployment.yml` requires f
 - `PROJECT_ID`: Missing Vercel project ID
 - `VERCEL_ORG_ID`: Missing Vercel organization ID for scope
 
+#### Root Cause Update
+The issue is **GitHub Actions secrets visibility** in pull request contexts. Repository secrets are not accessible to pull request workflows for security reasons, even for same-repository PRs.
+
 #### How to Resolve
 
-**Step 1: Get Vercel Credentials**
-1. Log into [Vercel Dashboard](https://vercel.com/dashboard)
-2. Generate a Vercel Token:
-   - Go to Settings → Tokens
-   - Click "Create Token"
-   - Give it a name (e.g., "GitHub Actions")
-   - Copy the generated token
-
-3. Find your Organization ID:
-   - Go to Settings → General
-   - Copy the "Team ID" (this is your `ORG_ID` and `VERCEL_ORG_ID`)
-
-4. Find your Project ID:
-   - Go to your project dashboard
-   - Click on your QR Generator project
-   - Go to Settings → General
-   - Copy the "Project ID"
-
-**Step 2: Add Secrets to GitHub Repository**
+**Step 1: Create GitHub Environment** (Recommended Solution)
 1. Go to GitHub repository: `https://github.com/tovimx/qr-generator`
-2. Navigate to Settings → Secrets and variables → Actions
-3. Click "New repository secret" for each:
-   - **Name**: `VERCEL_TOKEN`, **Value**: [Token from Step 1.2]
-   - **Name**: `ORG_ID`, **Value**: [Team ID from Step 1.3]
-   - **Name**: `PROJECT_ID`, **Value**: [Project ID from Step 1.4]
-   - **Name**: `VERCEL_ORG_ID`, **Value**: [Team ID from Step 1.3] (same as ORG_ID)
+2. Navigate to Settings → Environments
+3. Click "New environment"
+4. Name it `preview`
+5. Click "Configure environment"
 
-**Step 3: Verify Setup**
-1. After adding secrets, push a new commit or re-run the failed workflow
-2. The `deploy-preview` job should now pass
-3. Vercel preview deployments should be created for pull requests
+**Step 2: Move Secrets to Environment**
+1. In the `preview` environment configuration:
+2. Add environment secrets (not repository secrets):
+   - **Name**: `VERCEL_TOKEN`, **Value**: [Your Vercel token]
+   - **Name**: `ORG_ID`, **Value**: `team_4d8n2ZrgVu3yMZ8NvjruAyCU`
+   - **Name**: `PROJECT_ID`, **Value**: `prj_jFMmjyQ8MsOumq2P8ARquPoHHBEj`
+   - **Name**: `VERCEL_ORG_ID`, **Value**: `team_4d8n2ZrgVu3yMZ8NvjruAyCU`
+
+**Step 3: Configure Environment Protection (Optional)**
+1. Under "Environment protection rules":
+   - Add required reviewers if needed
+   - Set deployment branches to allow `main` and PR branches
+
+**Step 4: Get Vercel Token** (If you haven't already)
+1. Log into [Vercel Dashboard](https://vercel.com/dashboard)
+2. Go to Settings → Tokens
+3. Click "Create Token"
+4. Name it "GitHub Actions Preview"
+5. Copy the generated token for Step 2
+
+**Step 5: Test Deployment**
+1. Push a commit to trigger the workflow
+2. The `deploy-preview` job should now have access to environment secrets
+3. Vercel preview deployments should work for pull requests
 
 #### Alternative Solution (If Not Using Vercel Yet)
 If you haven't set up Vercel for this project yet, you can temporarily disable the deployment job by commenting out lines 66-78 in `.github/workflows/vercel-deployment.yml` until you're ready to configure Vercel.

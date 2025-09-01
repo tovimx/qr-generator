@@ -66,6 +66,7 @@ jobs:
   deploy-preview:
     needs: test
     runs-on: ubuntu-latest
+    environment: preview
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
