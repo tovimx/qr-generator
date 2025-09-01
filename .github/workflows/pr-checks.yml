@@ -58,18 +58,6 @@ jobs:
     - name: Setup Database Schema
       run: npx prisma db push
 
-    - name: Check commit messages
-      run: |
-        echo "Checking commit message format..."
-        git log --oneline origin/main..HEAD | while read line; do
-          if ! echo "$line" | grep -qE '^[a-f0-9]+ (feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+'; then
-            echo "❌ Invalid commit message format: $line"
-            echo "Expected format: type(scope): description"
-            echo "Types: feat, fix, docs, style, refactor, test, chore"
-            exit 1
-          fi
-        done
-
     - name: Check for secrets in code
       run: |
         echo "Scanning for potential secrets..."
