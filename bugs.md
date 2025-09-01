@@ -94,6 +94,74 @@ This was resolved by adding the complete E2E test infrastructure (database servi
 
 ---
 
+## Active Issues
+
+### Vercel Deployment Missing Secrets - Deploy Preview Job Failing (2025-09-01)
+
+**Status**: Active
+**Severity**: Medium
+**Impact**: Vercel preview deployments not working, but main CI/CD pipeline passing
+
+#### Issue Description
+The Vercel Deployment Control workflow's `deploy-preview` job is failing due to missing GitHub repository secrets for Vercel integration. The E2E tests are now passing successfully, but the deployment step fails with:
+
+```
+Error: Input required and not supplied: vercel-token
+at Object.getInput (/home/runner/work/_actions/amondnet/vercel-action/v25/dist/index.js:212:15)
+```
+
+#### Root Cause Analysis
+The `deploy-preview` job in `.github/workflows/vercel-deployment.yml` requires four secrets that are not configured in the GitHub repository settings:
+
+- `VERCEL_TOKEN`: Missing Vercel authentication token
+- `ORG_ID`: Missing Vercel organization ID  
+- `PROJECT_ID`: Missing Vercel project ID
+- `VERCEL_ORG_ID`: Missing Vercel organization ID for scope
+
+#### How to Resolve
+
+**Step 1: Get Vercel Credentials**
+1. Log into [Vercel Dashboard](https://vercel.com/dashboard)
+2. Generate a Vercel Token:
+   - Go to Settings → Tokens
+   - Click "Create Token"
+   - Give it a name (e.g., "GitHub Actions")
+   - Copy the generated token
+
+3. Find your Organization ID:
+   - Go to Settings → General
+   - Copy the "Team ID" (this is your `ORG_ID` and `VERCEL_ORG_ID`)
+
+4. Find your Project ID:
+   - Go to your project dashboard
+   - Click on your QR Generator project
+   - Go to Settings → General
+   - Copy the "Project ID"
+
+**Step 2: Add Secrets to GitHub Repository**
+1. Go to GitHub repository: `https://github.com/tovimx/qr-generator`
+2. Navigate to Settings → Secrets and variables → Actions
+3. Click "New repository secret" for each:
+   - **Name**: `VERCEL_TOKEN`, **Value**: [Token from Step 1.2]
+   - **Name**: `ORG_ID`, **Value**: [Team ID from Step 1.3]
+   - **Name**: `PROJECT_ID`, **Value**: [Project ID from Step 1.4]
+   - **Name**: `VERCEL_ORG_ID`, **Value**: [Team ID from Step 1.3] (same as ORG_ID)
+
+**Step 3: Verify Setup**
+1. After adding secrets, push a new commit or re-run the failed workflow
+2. The `deploy-preview` job should now pass
+3. Vercel preview deployments should be created for pull requests
+
+#### Alternative Solution (If Not Using Vercel Yet)
+If you haven't set up Vercel for this project yet, you can temporarily disable the deployment job by commenting out lines 66-78 in `.github/workflows/vercel-deployment.yml` until you're ready to configure Vercel.
+
+#### Timeline
+- **Discovered**: 2025-09-01 (after fixing E2E test infrastructure)
+- **Status**: Secrets configured - testing deployment
+- **Priority**: Medium (doesn't block development, only affects deployments)
+
+---
+
 *Last Updated: 2025-09-01*
 *Reporter: Analysis via GitHub MCP tools*
 *Status: **RESOLVED** - All GitHub Actions workflows now have proper E2E test infrastructure*
