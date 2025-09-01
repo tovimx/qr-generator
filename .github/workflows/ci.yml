@@ -9,10 +9,35 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qr_generator_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     
     strategy:
       matrix:
         node-version: [20.x, 22.x]
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qr_generator_test
+      DIRECT_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qr_generator_test
+      NEXT_PUBLIC_SUPABASE_URL: "https://test.supabase.co"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key"
+      SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      DISABLE_AUTH_FOR_TESTING: "true"
+      NODE_ENV: "test"
     
     steps:
     - name: Checkout repository
@@ -30,6 +55,9 @@ jobs:
     - name: Generate Prisma Client
       run: npx prisma generate
 
+    - name: Setup Database Schema
+      run: npx prisma db push
+
     - name: Lint code
       run: npm run lint
 
@@ -38,13 +66,6 @@ jobs:
 
     - name: Build application
       run: npm run build
-      env:
-        # Mock environment variables for build
-        DATABASE_URL: "postgresql://user:pass@localhost:5432/test"
-        NEXT_PUBLIC_SUPABASE_URL: "https://test.supabase.co"
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key"
-        SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key"
-        NEXT_PUBLIC_APP_URL: "http://localhost:3000"
 
     # Temporarily skip tests - focusing on build validation
     # - name: Install Playwright Browsers
@@ -94,6 +115,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-and-test, security-audit]
     if: github.event_name == 'pull_request'
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
     - name: Comment PR with preview info
       uses: actions/github-script@v7
