@@ -33,3 +33,6 @@ Extra rules (not required to be followed but recommended):
 - Do not focus on error handling.
 - Do not focus on edge cases.
 - Do not focus on performance optimization.
+
+Important Case:
+if test is failing multiple times, comment it completly and document why it should changed, fixed or removed entirely.

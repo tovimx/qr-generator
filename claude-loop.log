@@ -3,3 +3,8 @@
 [2025-08-31 17:19:55] 📝 Monitoreando: ./prompt.md
 [2025-08-31 17:19:55] ⚡ Modo continuo: Sin delays
 [2025-08-31 17:19:55] 🔄 Iteración #1 (prompt.md modificado)
+[2025-08-31 18:05:07] 🛑 Loop interrumpido por usuario en iteración #1
+[2025-08-31 18:05:07] ✅ Iteración #1 exitosa
+[2025-08-31 18:05:07] 🔄 Iteración #2 (prompt.md modificado)
+[2025-08-31 18:05:10] 🛑 Loop interrumpido por usuario en iteración #2
+[2025-08-31 18:05:10] ✅ Iteración #2 exitosa
