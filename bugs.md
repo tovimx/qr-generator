@@ -72,8 +72,8 @@ The Playwright test suite tries to start a Next.js development server but fails 
 ✅ **CI/CD Pipeline**: Fixed by adding PostgreSQL services and environment variables - now passing
 ✅ **Playwright Port Issue**: Fixed by changing port from 3004 to 3000 in playwright.config.ts
 ✅ **Commit Message Validation**: Removed entirely - no longer blocking PRs
-🔄 **E2E Tests**: Should now work with corrected port configuration
-🔄 **Vercel Deployment Control**: Dependent on E2E tests - should auto-resolve
+✅ **E2E Tests**: Fixed by adding Playwright browser installation to all workflows
+✅ **Vercel Deployment Control**: Fixed by adding full E2E test setup including database and Playwright browsers
 
 #### Fixes Applied
 1. **PostgreSQL Database Services**: Added to all GitHub Actions workflows with proper health checks
@@ -81,14 +81,19 @@ The Playwright test suite tries to start a Next.js development server but fails 
 3. **Port Configuration**: Fixed Playwright webServer port mismatch (3004 → 3000)
 4. **Commit Validation**: Removed restrictive commit message validation
 5. **Permissions**: Fixed GitHub Actions permissions for PR comments
+6. **Playwright Browser Installation**: Added `npx playwright install chromium --with-deps` to Vercel Deployment Control workflow
+7. **Database Schema Setup**: Added Prisma client generation and schema push steps to all E2E workflows
 
-#### Next Steps
-1. ✅ Test E2E workflow with corrected port configuration
-2. ✅ Verify all GitHub Actions are now passing
-3. ✅ Enable PR #5 merging capability
+#### Final Issue Resolution
+The final issue was that the Vercel Deployment Control workflow was missing Playwright browser installation. The error message indicated:
+```
+Error: browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1181/chrome-linux/headless_shell
+```
+
+This was resolved by adding the complete E2E test infrastructure (database services, environment variables, Prisma setup, and Playwright browser installation) to the `vercel-deployment.yml` workflow to match the working `e2e-simple.yml` configuration.
 
 ---
 
 *Last Updated: 2025-09-01*
 *Reporter: Analysis via GitHub MCP tools*
-*Status: Resolved - awaiting final verification*
+*Status: **RESOLVED** - All GitHub Actions workflows now have proper E2E test infrastructure*
