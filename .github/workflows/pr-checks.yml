@@ -98,8 +98,6 @@ jobs:
       if: always()
       with:
         script: |
-          const { context, github } = require('@actions/github');
-          
           let message = '## 🔍 PR Quality Check Results\n\n';
           message += '✅ Build validation: Passed\n';
           message += '✅ Lint checks: Passed\n';
